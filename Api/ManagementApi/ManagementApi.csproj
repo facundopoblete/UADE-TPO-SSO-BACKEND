@@ -21,6 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="Controllers\ValuesController.cs" />
+    <ProjectReference Include="..\DAL\DAL.csproj" />
   </ItemGroup>
 </Project>
