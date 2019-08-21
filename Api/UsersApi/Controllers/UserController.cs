@@ -14,7 +14,7 @@ namespace UsersApi.Controllers
         public UsersService usersService = new UsersService();
 
         [HttpPost("login")]
-        public IActionResult Login(LoginDTO login)
+        public IActionResult Login([FromBody] LoginDTO login)
         {
             Tenant tenant = RouteData.Values["tenant"] as Tenant;
 
@@ -40,7 +40,7 @@ namespace UsersApi.Controllers
         }
 
         [HttpPost("signup")]
-        public IActionResult Signup(SignupDTO signup)
+        public IActionResult Signup([FromBody] SignupDTO signup)
         {
             Tenant tenant = RouteData.Values["tenant"] as Tenant;
 
