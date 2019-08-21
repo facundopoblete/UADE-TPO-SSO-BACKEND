@@ -1,7 +1,13 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using System.Text;
+using ManagementApi.Filters;
+using ManagementApi.Utils;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ManagementApi
@@ -17,14 +23,35 @@ namespace ManagementApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSwaggerGen(swaggerGen => swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Management", Version = "v1" }));
+            services.AddSwaggerGen(swaggerGen =>
+            {
+                swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Management", Version = "v1" });
 
+                swaggerGen.OperationFilter<TenantTokenOperationFilter>();
+            });
+            
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder => {
                 builder
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowAnyOrigin();
             }));
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+            }).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("beb5c3a494ac42e39213804d71425eff")),
+                    ValidateIssuer = false,
+                    ValidateAudience = false
+                };
+            });
 
             services.AddMvc();
         }

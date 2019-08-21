@@ -2,9 +2,8 @@
 using DataAccess;
 using System.Linq;
 using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Buffers.Text;
 using System.Text;
+using Services.Utils;
 
 namespace Services
 {
@@ -27,35 +26,9 @@ namespace Services
             return dBContext.User.Where(x => x.TenantId == tenantId).ToList();
         }
 
-        static byte[] GenerateSaltedHash(byte[] plainText, byte[] salt)
-        {
-            HashAlgorithm algorithm = new SHA256Managed();
-
-            byte[] plainTextWithSaltBytes =
-              new byte[plainText.Length + salt.Length];
-
-            for (int i = 0; i < plainText.Length; i++)
-            {
-                plainTextWithSaltBytes[i] = plainText[i];
-            }
-            for (int i = 0; i < salt.Length; i++)
-            {
-                plainTextWithSaltBytes[plainText.Length + i] = salt[i];
-            }
-
-            return algorithm.ComputeHash(plainTextWithSaltBytes);
-        }
-
-        public bool IsValidPassword(User user, string password)
-        {
-            return Convert.ToBase64String(GenerateSaltedHash(Encoding.UTF8.GetBytes(password), Convert.FromBase64String(user.PasswordSalt))) == user.PasswordHash;
-        }
-
         public User CreateUser(Guid tenantId, string fullName, string email, string password)
         {
-            var rnd = new RNGCryptoServiceProvider();
-            var buf = new byte[20];
-            rnd.GetBytes(buf);
+            var salt = PasswordUtils.GenerateSalt();
 
             var user = new User()
             {
@@ -63,14 +36,14 @@ namespace Services
                 Id = Guid.NewGuid(),
                 FullName = fullName,
                 Email = email,
-                PasswordSalt = Convert.ToBase64String(buf),
-                PasswordHash = Convert.ToBase64String(GenerateSaltedHash(Encoding.UTF8.GetBytes(password), buf))
+                PasswordSalt = Convert.ToBase64String(salt),
+                PasswordHash = Convert.ToBase64String(PasswordUtils.GenerateSaltedHash(Encoding.UTF8.GetBytes(password), salt))
             };
 
             dBContext.Add(user);
             dBContext.SaveChanges();
 
-            RegisterUserEvent(tenantId, user.Id, "USER CREATED");
+            RegisterUserEvent(tenantId, user.Id, UserEvents.USER_CREATED);
 
             return user;
         }
@@ -86,7 +59,7 @@ namespace Services
             dBContext.Remove(user);
             dBContext.SaveChanges();
 
-            RegisterUserEvent(tenantId, userId, "USER DELETED");
+            RegisterUserEvent(tenantId, userId, UserEvents.USER_DELETED);
         }
 
         public void UpdateUser(Guid tenantId, Guid userId, string fullName)
@@ -101,7 +74,7 @@ namespace Services
             dBContext.Update(user);
             dBContext.SaveChanges();
 
-            RegisterUserEvent(tenantId, userId, "USER UPDATED");
+            RegisterUserEvent(tenantId, userId, UserEvents.USER_UPDATED);
         }
 
         public void UpdateUserMetadata(Guid tenantId, Guid userId, dynamic metadata)
@@ -116,7 +89,7 @@ namespace Services
             dBContext.Update(user);
             dBContext.SaveChanges();
 
-            RegisterUserEvent(tenantId, userId, "METADATA UPDATED");
+            RegisterUserEvent(tenantId, userId, UserEvents.USER_METADATA_UPDATED);
         }
 
         public void RegisterUserEvent(Guid tenantId, Guid userId, string userEvent)

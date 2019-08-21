@@ -5,32 +5,28 @@ using System.Security.Claims;
 using DataAccess;
 using Microsoft.IdentityModel.Tokens;
 
-namespace UsersApi.Utils
+namespace ManagementApi.Utils
 {
     public class JWTUtils
     {
         private const string ISSUER = "UADE SSO";
-        private const string USER_ID_CLAIM = "userId";
+        private const string TENANT_ID_CLAIM = "tenantId";
+        public const string SSO_SECRET = "beb5c3a494ac42e39213804d71425eff";
 
-        public static string CreateJWT(Tenant tenant, User user)
+        public static string CreateJWT(Tenant tenant)
         {
-            var signingKey = Convert.FromBase64String(tenant.JwtSigningKey);
-            var expiryDuration = tenant.JwtDuration;
-
+            var signingKey = Convert.FromBase64String(SSO_SECRET);
+            
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = ISSUER,
-                Audience = tenant.ClientId,
+                Audience = tenant.Name,
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
-                Subject = new ClaimsIdentity(new List<Claim> { new Claim(USER_ID_CLAIM, user.Id.ToString()) }),
+                Expires = DateTime.UtcNow.AddDays(1),
+                Subject = new ClaimsIdentity(new List<Claim> { new Claim(TENANT_ID_CLAIM, tenant.Id.ToString()) }),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(signingKey), SecurityAlgorithms.HmacSha256Signature)
             };
-
-            if (expiryDuration > 0)
-            {
-                tokenDescriptor.Expires = DateTime.UtcNow.AddMinutes(expiryDuration);
-            }
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = jwtTokenHandler.CreateJwtSecurityToken(tokenDescriptor);

@@ -2,28 +2,30 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Services;
+using System.Linq;
 
-namespace UsersApi.Filters
+namespace ManagementApi.Filters
 {
     public class TenantFilter : ActionFilterAttribute
     {
-        public const string TENANT_HEADER = "TENANT-ID";
         public const string TENANT_KEY = "tenant";
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var tenantHeader = context.HttpContext?.Request?.Headers?[TENANT_HEADER].ToString();
-            Guid tenantGuid = Guid.Empty;
-            Guid.TryParse(tenantHeader, out tenantGuid);
+            var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "userId");
 
-            if (tenantGuid == Guid.Empty)
+            if (userId == null)
             {
                 context.Result = new StatusCodeResult(404);
                 base.OnActionExecuting(context);
             }
 
             TenantsService tenantsService = new TenantsService();
-            var tenant = tenantsService.GetTenant(tenantGuid);
+
+            Guid tenantId = Guid.Empty;
+            Guid.TryParse(userId.Value, out tenantId);
+
+            var tenant = tenantsService.GetTenantFromAdmin(tenantId);
 
             if (tenant == null)
             {
@@ -32,6 +34,8 @@ namespace UsersApi.Filters
             }
 
             context.RouteData.Values.Add(TENANT_KEY, tenant);
+
+            base.OnActionExecuting(context);
         }
     }
 }

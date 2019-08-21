@@ -60,6 +60,12 @@ namespace DataAccess
                     .HasColumnName("client_id")
                     .HasMaxLength(1024);
 
+                entity.Property(e => e.ClientSecret)
+                    .IsRequired()
+                    .HasColumnName("client_secret")
+                    .HasMaxLength(1024)
+                    .HasDefaultValueSql("''::character varying");
+
                 entity.Property(e => e.JwtDuration).HasColumnName("jwt_duration");
 
                 entity.Property(e => e.JwtSigningKey)
