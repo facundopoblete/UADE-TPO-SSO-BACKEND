@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
+using UsersApi.Filters;
 
 namespace UsersApi
 {
@@ -17,7 +18,13 @@ namespace UsersApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSwaggerGen(swaggerGen => swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Users", Version = "v1" }));
+
+            services.AddSwaggerGen(swaggerGen =>
+            {
+                swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Users", Version = "v1" });
+
+                swaggerGen.OperationFilter<TenantHeaderOperationFilter>();
+            });
 
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder => {
                 builder
