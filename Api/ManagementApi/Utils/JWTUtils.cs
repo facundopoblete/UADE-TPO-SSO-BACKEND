@@ -20,7 +20,7 @@ namespace ManagementApi.Utils
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = ISSUER,
-                Audience = tenant.Name,
+                Audience = tenant.Id.ToString(),
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
                 Expires = DateTime.UtcNow.AddDays(1),

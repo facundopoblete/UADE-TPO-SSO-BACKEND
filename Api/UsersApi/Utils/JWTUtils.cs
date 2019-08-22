@@ -20,7 +20,7 @@ namespace UsersApi.Utils
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Issuer = ISSUER,
-                Audience = tenant.ClientId,
+                Audience = tenant.Id.ToString(),
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
                 Subject = new ClaimsIdentity(new List<Claim> { new Claim(USER_ID_CLAIM, user.Id.ToString()) }),

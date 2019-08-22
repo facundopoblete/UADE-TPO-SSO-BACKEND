@@ -1,4 +1,8 @@
-﻿using DataAccess;
+﻿using System;
+using System.Linq;
+using System.Security.Claims;
+using DataAccess;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 using Services.Utils;
@@ -9,12 +13,12 @@ using UsersApi.Utils;
 namespace UsersApi.Controllers
 {
     [Route("api")]
-    [TenantFilter]
     public class UserController : Controller
     {
         public UsersService usersService = new UsersService();
 
         [HttpPost("login")]
+        [TenantFilter]
         public IActionResult Login([FromBody] LoginDTO login)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
@@ -41,6 +45,7 @@ namespace UsersApi.Controllers
         }
 
         [HttpPost("signup")]
+        [TenantFilter]
         public IActionResult Signup([FromBody] SignupDTO signup)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
@@ -55,6 +60,35 @@ namespace UsersApi.Controllers
             return Ok(new TokenDTO
             {
                 Token = JWTUtils.CreateJWT(tenant, user)
+            });
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public IActionResult UserInfo()
+        {
+            var audience = HttpContext.User.Claims.Where(c => c.Type == "aud").FirstOrDefault();
+            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+
+            if (audience == null || userId == null)
+            {
+                return NotFound();
+            }
+
+            var user = usersService.GetUser(Guid.Parse(audience.Value), Guid.Parse(userId.Value));
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new UserDTO
+            {
+                FullName = user.FullName,
+                Email = user.Email,
+                ExtraClaim = user.ExtraClaims,
+                Metadata = user.Metadata,
+                Id = user.Id
             });
         }
     }
