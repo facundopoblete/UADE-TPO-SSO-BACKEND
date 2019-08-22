@@ -45,15 +45,15 @@ namespace DataAccess
                     .HasName("tenant_id_uindex")
                     .IsUnique();
 
-                entity.HasIndex(e => e.ManagementToken)
-                    .HasName("tenant_management_token_uindex")
-                    .IsUnique();
-
                 entity.Property(e => e.Id)
                     .HasColumnName("id")
                     .HasDefaultValueSql("uuid_generate_v4()");
 
                 entity.Property(e => e.AdminId).HasColumnName("admin_id");
+
+                entity.Property(e => e.AllowPublicUsers)
+                    .HasColumnName("allow_public_users")
+                    .HasDefaultValueSql("true");
 
                 entity.Property(e => e.ClientId)
                     .IsRequired()
@@ -73,11 +73,6 @@ namespace DataAccess
                     .HasColumnName("jwt_signing_key")
                     .HasMaxLength(2048)
                     .HasDefaultValueSql("''::character varying");
-
-                entity.Property(e => e.ManagementToken)
-                    .IsRequired()
-                    .HasColumnName("management_token")
-                    .HasMaxLength(1024);
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -100,6 +95,10 @@ namespace DataAccess
                     .IsRequired()
                     .HasColumnName("email")
                     .HasMaxLength(100);
+
+                entity.Property(e => e.ExtraClaims)
+                    .HasColumnName("extra_claims")
+                    .HasColumnType("json");
 
                 entity.Property(e => e.FullName)
                     .IsRequired()

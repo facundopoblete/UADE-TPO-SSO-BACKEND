@@ -30,20 +30,34 @@ namespace Services
             return dBContext.Tenant.ToList();
         }
 
-        public void CreateTenant(string tenantName)
+        public void CreateTenant(string tenantName, Guid adminId)
         {
             var tenant = new Tenant
             {
                 Name = tenantName,
-                ManagementToken = Convert.ToBase64String(GenerateRandomBytes(128)),
                 ClientId = Guid.NewGuid().ToString("N"),
                 JwtSigningKey = Guid.NewGuid().ToString("N"),
                 JwtDuration = 0,
                 ClientSecret = Convert.ToBase64String(GenerateRandomBytes(200)),
+                AdminId = adminId,
                 Id = Guid.NewGuid(),
             };
 
             dBContext.Add(tenant);
+            dBContext.SaveChanges();
+        }
+
+        public void UpdateTenantSettings(Guid tenantId, string name, string signingKey, int duration, bool allowPublicUsers)
+        {
+            var newTenantInfo = GetTenant(tenantId);
+
+            newTenantInfo.Name = name;
+            newTenantInfo.JwtSigningKey = signingKey;
+            newTenantInfo.JwtDuration = duration;
+            newTenantInfo.AllowPublicUsers = allowPublicUsers;
+            newTenantInfo.Id = tenantId;
+
+            dBContext.Update(newTenantInfo);
             dBContext.SaveChanges();
         }
 

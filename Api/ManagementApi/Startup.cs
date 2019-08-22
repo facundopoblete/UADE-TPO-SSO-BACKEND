@@ -49,7 +49,8 @@ namespace ManagementApi
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("beb5c3a494ac42e39213804d71425eff")),
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ValidateLifetime = false
                 };
             });
 

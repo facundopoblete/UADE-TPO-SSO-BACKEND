@@ -17,6 +17,7 @@ namespace DataAccess
         public string PasswordSalt { get; set; }
         public string Metadata { get; set; }
         public Guid Id { get; set; }
+        public string ExtraClaims { get; set; }
 
         public virtual Tenant Tenant { get; set; }
         public virtual ICollection<UserEvent> UserEvent { get; set; }
