@@ -1,9 +1,11 @@
 ﻿using System;
 using DataAccess;
 using ManagementApi.Filters;
+using ManagementApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Linq;
 
 namespace ManagementApi.Controllers
 {
@@ -19,7 +21,14 @@ namespace ManagementApi.Controllers
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
-            return Ok(usersService.GetUsers(tenant.Id));
+            var users = usersService.GetUsers(tenant.Id);
+
+            return Ok(users.Select(x => new UserDTO
+            {
+                Email = x.Email,
+                FullName = x.FullName,
+                Id = x.Id
+            }));
         }
 
         [HttpGet("{userId}")]
@@ -34,16 +43,25 @@ namespace ManagementApi.Controllers
                 return NotFound();
             }
 
-            return Ok(user);
+            return Ok(new UserExtendedInfoDTO()
+            {
+                Email = user.Email,
+                Events = user.UserEvent.Select(x => new UserEventDTO()
+                {
+                    When = x.When,
+                    Event = x.Event
+                }).ToList(),
+                FullName = user.FullName,
+                Id = user.Id
+            });
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody]User user)
+        public IActionResult Post([FromBody]NewUserDTO user)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
-            // TODO: add password
-            var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, "");
+            var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, user.Password);
 
             if (newUser == null)
             {
@@ -54,7 +72,7 @@ namespace ManagementApi.Controllers
         }
 
         [HttpPut("{userId}")]
-        public IActionResult Put(Guid userId, [FromBody]User newUserData)
+        public IActionResult Put(Guid userId, [FromBody]NewUserDTO newUserData)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
@@ -65,7 +83,7 @@ namespace ManagementApi.Controllers
                 return NotFound();
             }
 
-            usersService.UpdateUser(tenant.Id, newUserData.Id, newUserData.FullName);
+            usersService.UpdateUser(tenant.Id, userId, newUserData.FullName);
 
             return Ok();
         }
