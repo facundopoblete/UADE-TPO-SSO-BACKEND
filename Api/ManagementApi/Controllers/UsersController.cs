@@ -46,7 +46,7 @@ namespace ManagementApi.Controllers
             return Ok(new UserExtendedInfoDTO()
             {
                 Email = user.Email,
-                Events = user.UserEvent.Select(x => new UserEventDTO()
+                Events = user.UserEvent.OrderByDescending(x => x.When).Take(5).Select(x => new UserEventDTO()
                 {
                     When = x.When,
                     Event = x.Event
