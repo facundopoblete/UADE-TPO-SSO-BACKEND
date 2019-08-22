@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using Services.Utils;
+using Microsoft.EntityFrameworkCore;
 
 namespace Services
 {
@@ -18,7 +19,7 @@ namespace Services
 
         public User GetUser(Guid tenantId, Guid userId)
         {
-            return dBContext.User.FirstOrDefault(x => x.TenantId == tenantId && x.Id == userId);
+            return dBContext.User.Include(x => x.UserEvent).FirstOrDefault(x => x.TenantId == tenantId && x.Id == userId);
         }
 
         public List<User> GetUsers(Guid tenantId)
