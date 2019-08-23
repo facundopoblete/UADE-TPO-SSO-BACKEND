@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using DataAccess;
+using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using Services;
@@ -21,6 +23,24 @@ namespace ManagementApi.Controllers
             }
 
             return Ok();
+        }
+
+        [HttpGet("loginSettings")]
+        [TenantFilter]
+        public IActionResult GetTenantCustomLogin()
+        {
+            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+
+            if (tenant == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new TenantCustomLogin()
+            {
+                AllowPublicUsers = tenant.AllowPublicUsers.Value,
+                LoginText = "// TODO"
+            });
         }
     }
 }
