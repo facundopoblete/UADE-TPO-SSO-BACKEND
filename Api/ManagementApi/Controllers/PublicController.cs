@@ -25,11 +25,11 @@ namespace ManagementApi.Controllers
             return Ok();
         }
 
-        [HttpGet("loginSettings")]
         [TenantFilter]
+        [HttpGet("loginSettings")]
         public IActionResult GetTenantCustomLogin()
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             if (tenant == null)
             {

@@ -13,7 +13,7 @@ namespace UsersApi.Filters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var tenantHeader = context.HttpContext?.Request?.Headers?[TENANT_HEADER].ToString();
-            Guid tenantGuid = Guid.Empty;
+            Guid tenantGuid;
             Guid.TryParse(tenantHeader, out tenantGuid);
 
             if (tenantGuid == Guid.Empty)

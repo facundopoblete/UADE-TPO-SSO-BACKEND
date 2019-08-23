@@ -11,7 +11,7 @@ namespace ManagementApi.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
-    [TenantFilter]
+    [JWTTenantFilter]
     public class UsersController : Controller
     {
         UsersService usersService = new UsersService();
@@ -19,7 +19,7 @@ namespace ManagementApi.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             var users = usersService.GetUsers(tenant.Id);
 
@@ -34,7 +34,7 @@ namespace ManagementApi.Controllers
         [HttpGet("{userId}")]
         public IActionResult Get(Guid userId)
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             var user = usersService.GetUser(tenant.Id, userId);
 
@@ -59,7 +59,7 @@ namespace ManagementApi.Controllers
         [HttpPost]
         public IActionResult Post([FromBody]NewUserDTO user)
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, user.Password);
 
@@ -74,7 +74,7 @@ namespace ManagementApi.Controllers
         [HttpPut("{userId}")]
         public IActionResult Put(Guid userId, [FromBody]NewUserDTO newUserData)
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             var user = usersService.GetUser(tenant.Id, userId);
 
@@ -91,7 +91,7 @@ namespace ManagementApi.Controllers
         [HttpDelete("{userId}")]
         public IActionResult Delete(Guid userId)
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             var user = usersService.GetUser(tenant.Id, userId);
 

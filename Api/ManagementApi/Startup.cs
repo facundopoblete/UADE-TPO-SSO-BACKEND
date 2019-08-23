@@ -28,6 +28,7 @@ namespace ManagementApi
                 swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Management", Version = "v1" });
 
                 swaggerGen.OperationFilter<TenantTokenOperationFilter>();
+                swaggerGen.OperationFilter<TenantHeaderOperationFilter>();
             });
             
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder => {

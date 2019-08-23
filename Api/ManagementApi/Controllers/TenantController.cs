@@ -10,7 +10,7 @@ namespace ManagementApi.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
-    [TenantFilter]
+    [JWTTenantFilter]
     public class TenantController : Controller
     {
         TenantsService tenantsService = new TenantsService();
@@ -18,7 +18,7 @@ namespace ManagementApi.Controllers
         [HttpGet]
         public IActionResult GetSettings()
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             return Ok(new TenantSettingsDTO()
             {
@@ -33,7 +33,7 @@ namespace ManagementApi.Controllers
         [HttpPut]
         public IActionResult UpdateSettings([FromBody] UpdateTenantSettingsDTO settings)
         {
-            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             tenantsService.UpdateTenantSettings(tenant.Id, settings.Name, settings.JwtSigningKey, settings.JwtDuration, settings.AllowPublicUsers);
 
