@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using DataAccess;
+﻿using DataAccess;
 using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Mvc;
