@@ -1,9 +1,10 @@
 ﻿namespace ManagementApi.Models
 {
-    public class NewUserDTO
+    public class UpdateUserDTO
     {
-        public string Email { get; set; }
         public string FullName { get; set; }
         public string Password { get; set; }
+        public dynamic Metadata { get; set; }
+        public dynamic ExtraClaims { get; set; }
     }
 }

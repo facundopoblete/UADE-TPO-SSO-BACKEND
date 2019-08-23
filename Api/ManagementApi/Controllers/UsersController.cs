@@ -52,7 +52,9 @@ namespace ManagementApi.Controllers
                     Event = x.Event
                 }).ToList(),
                 FullName = user.FullName,
-                Id = user.Id
+                Id = user.Id,
+                ExtraClaims = user.ExtraClaims,
+                Metadata = user.Metadata
             });
         }
 
@@ -61,18 +63,20 @@ namespace ManagementApi.Controllers
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
-            var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, user.Password);
+            var existUser = usersService.GetUser(tenant.Id, user.Email);
 
-            if (newUser == null)
+            if (existUser != null)
             {
-                return NotFound();
+                return Conflict();
             }
+
+            var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, user.Password);
 
             return Ok(newUser);
         }
 
         [HttpPut("{userId}")]
-        public IActionResult Put(Guid userId, [FromBody]NewUserDTO newUserData)
+        public IActionResult Put(Guid userId, [FromBody]UpdateUserDTO newUserData)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
@@ -83,7 +87,7 @@ namespace ManagementApi.Controllers
                 return NotFound();
             }
 
-            usersService.UpdateUser(tenant.Id, userId, newUserData.FullName);
+            usersService.UpdateUser(tenant.Id, userId, newUserData.FullName, newUserData.Password, newUserData.ExtraClaims?.ToString(), newUserData.Metadata?.ToString());
 
             return Ok();
         }

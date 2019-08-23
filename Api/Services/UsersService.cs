@@ -63,16 +63,33 @@ namespace Services
             RegisterUserEvent(tenantId, userId, UserEvents.USER_DELETED);
         }
 
-        public void UpdateUser(Guid tenantId, Guid userId, string fullName)
+        public void UpdateUser(Guid tenantId, Guid userId, string fullName, string password, string extraClaims, string metadata)
         {
-            var user = new User()
-            {
-                TenantId = tenantId,
-                Id = userId,
-                FullName = fullName
-            };
+            var existUser = this.GetUser(tenantId, userId);
 
-            dBContext.Update(user);
+            if (fullName != null)
+            {
+                existUser.FullName = fullName;
+            }
+
+            if (password != null)
+            {
+                var salt = PasswordUtils.GenerateSalt();
+                existUser.PasswordSalt = Convert.ToBase64String(salt);
+                existUser.PasswordHash = Convert.ToBase64String(PasswordUtils.GenerateSaltedHash(Encoding.UTF8.GetBytes(password), salt));
+            }
+
+            if (extraClaims != null)
+            {
+                existUser.ExtraClaims = extraClaims;
+            }
+
+            if (metadata != null)
+            {
+                existUser.Metadata = metadata;
+            }
+
+            dBContext.Update(existUser);
             dBContext.SaveChanges();
 
             RegisterUserEvent(tenantId, userId, UserEvents.USER_UPDATED);
