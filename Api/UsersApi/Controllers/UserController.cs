@@ -27,7 +27,7 @@ namespace UsersApi.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
             if (!PasswordUtils.IsValidPassword(user, login.Password))
@@ -54,7 +54,7 @@ namespace UsersApi.Controllers
 
             if (user == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
             return Ok(new TokenDTO
@@ -72,14 +72,14 @@ namespace UsersApi.Controllers
 
             if (audience == null || userId == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
             var user = usersService.GetUser(Guid.Parse(audience.Value), Guid.Parse(userId.Value));
 
             if (user == null)
             {
-                return NotFound();
+                return Unauthorized();
             }
 
             return Ok(new UserDTO
