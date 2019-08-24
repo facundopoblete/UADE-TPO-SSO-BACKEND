@@ -29,7 +29,7 @@ namespace ManagementApi.Filters
             var tenant = tenantsService.GetTenantFromAdmin(tenantId);
 
             context.RouteData.Values.Add(TENANT_KEY, tenant);
-            context.RouteData.Values.Add(USER_KEY, userId.Value);
+            context.RouteData.Values.Add(USER_KEY, Guid.Parse(userId.Value));
 
             base.OnActionExecuting(context);
         }
