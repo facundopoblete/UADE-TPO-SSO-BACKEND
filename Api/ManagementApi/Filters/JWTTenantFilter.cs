@@ -27,12 +27,6 @@ namespace ManagementApi.Filters
 
             var tenant = tenantsService.GetTenantFromAdmin(tenantId);
 
-            if (tenant == null)
-            {
-                context.Result = new StatusCodeResult(404);
-                base.OnActionExecuting(context);
-            }
-
             context.RouteData.Values.Add(TENANT_KEY, tenant);
 
             base.OnActionExecuting(context);
