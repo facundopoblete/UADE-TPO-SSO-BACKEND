@@ -20,9 +20,9 @@ namespace ManagementApi.Controllers
         [HttpGet]
         public IActionResult GetSettings()
         {
-            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+            Guid userId = (System.Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
 
-            var tenant = tenantsService.GetTenantFromAdmin(Guid.Parse(userId.ToString()));
+            var tenant = tenantsService.GetTenantFromAdmin(userId);
 
             if (tenant != null)
             {
@@ -52,9 +52,9 @@ namespace ManagementApi.Controllers
         [HttpPost]
         public IActionResult CreateTenant([FromBody] NewTenantDTO newTenant)
         {
-            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+            Guid userId = (System.Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
 
-            var tenant = tenantsService.GetTenantFromAdmin(Guid.Parse(userId.ToString()));
+            var tenant = tenantsService.GetTenantFromAdmin(userId);
 
             if (tenant != null)
             {

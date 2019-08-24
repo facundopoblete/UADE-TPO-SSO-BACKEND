@@ -8,8 +8,9 @@ namespace ManagementApi.Filters
 {
     public class JWTTenantFilter : ActionFilterAttribute
     {
-        public const string TENANT_KEY = "tenant";
-
+        public const string TENANT_KEY = "TENANT";
+        public const string USER_KEY = "USER_ID";
+        
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "userId");
@@ -28,6 +29,7 @@ namespace ManagementApi.Filters
             var tenant = tenantsService.GetTenantFromAdmin(tenantId);
 
             context.RouteData.Values.Add(TENANT_KEY, tenant);
+            context.RouteData.Values.Add(USER_KEY, userId.Value);
 
             base.OnActionExecuting(context);
         }
