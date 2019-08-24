@@ -24,7 +24,7 @@ namespace ManagementApi.Controllers
 
             var tenant = tenantsService.GetTenantFromAdmin(userId);
 
-            if (tenant != null)
+            if (tenant == null)
             {
                 return NotFound();
             }
@@ -52,7 +52,7 @@ namespace ManagementApi.Controllers
         [HttpPost]
         public IActionResult CreateTenant([FromBody] NewTenantDTO newTenant)
         {
-            Guid userId = (System.Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
+            Guid userId = (Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
 
             var tenant = tenantsService.GetTenantFromAdmin(userId);
 
@@ -61,7 +61,7 @@ namespace ManagementApi.Controllers
                 return Conflict();
             }
 
-            tenantsService.CreateTenant(newTenant.Name, tenant.Id);
+            tenantsService.CreateTenant(newTenant.Name, userId);
 
             return Ok();
         }
