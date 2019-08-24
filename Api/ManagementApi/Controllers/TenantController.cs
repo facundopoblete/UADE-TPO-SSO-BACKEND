@@ -1,4 +1,6 @@
-﻿using DataAccess;
+﻿using System;
+using System.Linq;
+using DataAccess;
 using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +20,14 @@ namespace ManagementApi.Controllers
         [HttpGet]
         public IActionResult GetSettings()
         {
-            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
+            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+
+            var tenant = tenantsService.GetTenantFromAdmin(Guid.Parse(userId.ToString()));
+
+            if (tenant != null)
+            {
+                return NotFound();
+            }
 
             return Ok(new TenantSettingsDTO()
             {
@@ -36,6 +45,25 @@ namespace ManagementApi.Controllers
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             tenantsService.UpdateTenantSettings(tenant.Id, settings.Name, settings.JwtSigningKey, settings.JwtDuration, settings.AllowPublicUsers);
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [Authorize]
+        [JWTTenantFilter]
+        public IActionResult CreateTenant([FromBody] NewTenantDTO newTenant)
+        {
+            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+
+            var tenant = tenantsService.GetTenantFromAdmin(Guid.Parse(userId.ToString()));
+
+            if (tenant != null)
+            {
+                return Conflict();
+            }
+
+            tenantsService.CreateTenant(newTenant.Name, tenant.Id);
 
             return Ok();
         }

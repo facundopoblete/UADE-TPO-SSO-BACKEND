@@ -50,6 +50,13 @@ namespace UsersApi.Controllers
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
+            var existUser = usersService.GetUser(tenant.Id, signup.Email);
+
+            if (existUser != null)
+            {
+                return Conflict();
+            }
+
             var user = usersService.CreateUser(tenant.Id, signup.FullName, signup.Email, signup.Password);
 
             if (user == null)
