@@ -50,8 +50,6 @@ namespace ManagementApi.Controllers
         }
 
         [HttpPost]
-        [Authorize]
-        [JWTTenantFilter]
         public IActionResult CreateTenant([FromBody] NewTenantDTO newTenant)
         {
             var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
