@@ -3,10 +3,11 @@ using DataAccess;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using Services.Interface;
 
-namespace Services
+namespace Services.Implementation
 {
-    public class TenantsService
+    public class TenantsService : ITenantService
     {
         DBContext dBContext = new DBContext();
 

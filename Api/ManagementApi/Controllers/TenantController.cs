@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Linq;
 using DataAccess;
 using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Services;
+using Services.Interface;
 
 namespace ManagementApi.Controllers
 {
@@ -15,12 +14,17 @@ namespace ManagementApi.Controllers
     [JWTTenantFilter]
     public class TenantController : Controller
     {
-        TenantsService tenantsService = new TenantsService();
+        ITenantService tenantsService;
+
+        public TenantController(ITenantService tenantService)
+        {
+            this.tenantsService = tenantService;
+        }
 
         [HttpGet]
         public IActionResult GetSettings()
         {
-            Guid userId = (System.Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
+            Guid userId = (Guid)RouteData.Values[JWTTenantFilter.USER_KEY];
 
             var tenant = tenantsService.GetTenantFromAdmin(userId);
 

@@ -4,8 +4,8 @@ using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Services;
 using System.Linq;
+using Services.Interface;
 
 namespace ManagementApi.Controllers
 {
@@ -14,7 +14,12 @@ namespace ManagementApi.Controllers
     [JWTTenantFilter]
     public class UsersController : Controller
     {
-        UsersService usersService = new UsersService();
+        public IUserService usersService;
+
+        public UsersController(IUserService usersService)
+        {
+            this.usersService = usersService;
+        }
 
         [HttpGet]
         public IActionResult Get()

@@ -2,14 +2,19 @@
 using ManagementApi.Filters;
 using ManagementApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Services;
+using Services.Interface;
 
 namespace ManagementApi.Controllers
 {
     [Route("api/[controller]")]
     public class PublicController : Controller
     {
-        TenantsService tenantService = new TenantsService();
+        ITenantService tenantService;
+
+        public PublicController(ITenantService tenantService)
+        {
+            this.tenantService = tenantService;
+        }
 
         [HttpPost]
         public IActionResult GetToken([FromBody] RequestTokenDTO requestToken)

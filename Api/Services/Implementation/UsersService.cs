@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Text;
 using Services.Utils;
 using Microsoft.EntityFrameworkCore;
+using Services.Interface;
 
-namespace Services
+namespace Services.Implementation
 {
-    public class UsersService
+    public class UsersService : IUserService
     {
         DBContext dBContext = new DBContext();
 

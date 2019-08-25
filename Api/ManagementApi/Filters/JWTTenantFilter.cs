@@ -1,8 +1,9 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Services;
 using System.Linq;
+using Services.Interface;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ManagementApi.Filters
 {
@@ -10,7 +11,7 @@ namespace ManagementApi.Filters
     {
         public const string TENANT_KEY = "TENANT";
         public const string USER_KEY = "USER_ID";
-        
+
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "userId");
@@ -21,10 +22,10 @@ namespace ManagementApi.Filters
                 base.OnActionExecuting(context);
             }
 
-            TenantsService tenantsService = new TenantsService();
-
             Guid tenantId = Guid.Empty;
             Guid.TryParse(userId.Value, out tenantId);
+
+            ITenantService tenantsService = context.HttpContext.RequestServices.GetService<ITenantService>();
 
             var tenant = tenantsService.GetTenantFromAdmin(tenantId);
 

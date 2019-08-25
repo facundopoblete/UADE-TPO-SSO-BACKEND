@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
 using DataAccess;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interface;
 using Services.Utils;
 using UsersApi.Filters;
 using UsersApi.Models;
@@ -15,7 +15,12 @@ namespace UsersApi.Controllers
     [Route("api")]
     public class UserController : Controller
     {
-        public UsersService usersService = new UsersService();
+        public IUserService usersService;
+
+        public UserController(IUserService usersService)
+        {
+            this.usersService = usersService;
+        }
 
         [HttpPost("login")]
         [TenantFilter]
@@ -49,6 +54,11 @@ namespace UsersApi.Controllers
         public IActionResult Signup([FromBody] SignupDTO signup)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+
+            if (!tenant.AllowPublicUsers.Value)
+            {
+                return Forbid();
+            }
 
             var existUser = usersService.GetUser(tenant.Id, signup.Email);
 

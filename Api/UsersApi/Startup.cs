@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using Services;
+using Services.Implementation;
+using Services.Interface;
 using Swashbuckle.AspNetCore.Swagger;
 using UsersApi.Filters;
 
@@ -99,6 +100,9 @@ namespace UsersApi
                     }
                 };
             });
+
+            services.AddScoped<ITenantService, TenantsService>();
+            services.AddScoped<IUserService, UsersService>();
 
             services.AddMvc();
         }

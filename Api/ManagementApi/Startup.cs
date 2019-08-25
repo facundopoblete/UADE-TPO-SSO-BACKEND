@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using Services.Implementation;
+using Services.Interface;
 using Swashbuckle.AspNetCore.Swagger;
 
 namespace ManagementApi
@@ -52,6 +54,9 @@ namespace ManagementApi
                     ValidateLifetime = false
                 };
             });
+
+            services.AddScoped<ITenantService, TenantsService>();
+            services.AddScoped<IUserService, UsersService>();
 
             services.AddMvc();
         }

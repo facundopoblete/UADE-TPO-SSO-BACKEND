@@ -1,7 +1,8 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Services;
+using Services.Interface;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace UsersApi.Filters
 {
@@ -22,7 +23,7 @@ namespace UsersApi.Filters
                 base.OnActionExecuting(context);
             }
 
-            TenantsService tenantsService = new TenantsService();
+            ITenantService tenantsService = context.HttpContext.RequestServices.GetService<ITenantService>();
             var tenant = tenantsService.GetTenant(tenantGuid);
 
             if (tenant == null)
