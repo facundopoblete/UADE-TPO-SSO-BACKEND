@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using ManagementApi.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -48,7 +49,7 @@ namespace ManagementApi
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Convert.FromBase64String("beb5c3a494ac42e39213804d71425eff")),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("beb5c3a494ac42e39213804d71425eff")),
                     ValidateIssuer = false,
                     ValidateAudience = false,
                     ValidateLifetime = false

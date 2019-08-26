@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using DataAccess;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -15,7 +16,7 @@ namespace UsersApi.Utils
 
         public static string CreateJWT(Tenant tenant, User user)
         {
-            var signingKey = Convert.FromBase64String(tenant.JwtSigningKey);
+            var signingKey = Encoding.UTF8.GetBytes(tenant.JwtSigningKey);
             var expiryDuration = tenant.JwtDuration;
 
             var tokenDescriptor = new SecurityTokenDescriptor

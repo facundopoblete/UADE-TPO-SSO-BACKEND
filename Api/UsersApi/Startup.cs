@@ -77,7 +77,7 @@ namespace UsersApi
                             throw new Exception("Token signature validation failed.");
                         }
 
-                        var hmac = new HMACSHA256(Convert.FromBase64String(tenant.JwtSigningKey));
+                        var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(tenant.JwtSigningKey));
 
                         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(hmac.Key), SecurityAlgorithms.HmacSha256Signature);
 

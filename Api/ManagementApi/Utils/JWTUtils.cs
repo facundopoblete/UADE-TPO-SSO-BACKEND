@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using DataAccess;
 using Microsoft.IdentityModel.Tokens;
 
@@ -15,7 +16,7 @@ namespace ManagementApi.Utils
 
         public static string CreateJWT(Tenant tenant)
         {
-            var signingKey = Convert.FromBase64String(SSO_SECRET);
+            var signingKey = Encoding.UTF8.GetBytes(SSO_SECRET);
             
             var tokenDescriptor = new SecurityTokenDescriptor
             {
