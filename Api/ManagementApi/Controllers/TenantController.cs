@@ -70,6 +70,4 @@ namespace ManagementApi.Controllers
             return Ok();
         }
     }
-
-
 }

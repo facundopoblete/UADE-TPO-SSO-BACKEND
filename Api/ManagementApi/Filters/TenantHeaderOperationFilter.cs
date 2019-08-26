@@ -14,7 +14,6 @@ namespace ManagementApi.Filters
 
             if (isTenantFilter)
             {
-
                 if (operation.Parameters == null)
                     operation.Parameters = new List<IParameter>();
 

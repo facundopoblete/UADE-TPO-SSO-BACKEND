@@ -4,13 +4,14 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using DataAccess;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 
 namespace UsersApi.Utils
 {
     public class JWTUtils
     {
         private const string ISSUER = "UADE SSO";
-        private const string USER_ID_CLAIM = "userId";
+        private const string EXTRA_CLAIMS = "extra_claims";
 
         public static string CreateJWT(Tenant tenant, User user)
         {
@@ -23,7 +24,7 @@ namespace UsersApi.Utils
                 Audience = tenant.Id.ToString(),
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
-                Subject = new ClaimsIdentity(new List<Claim> { new Claim(USER_ID_CLAIM, user.Id.ToString()) }),
+                Subject = new ClaimsIdentity(new List<Claim> { new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()) }),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(signingKey), SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -34,6 +35,12 @@ namespace UsersApi.Utils
 
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = jwtTokenHandler.CreateJwtSecurityToken(tokenDescriptor);
+
+            if (user.ExtraClaims != null)
+            {
+                jwtToken.Payload.Add(EXTRA_CLAIMS, JsonConvert.DeserializeObject<dynamic>(user.ExtraClaims));
+            }
+
             var token = jwtTokenHandler.WriteToken(jwtToken);
 
             return token;

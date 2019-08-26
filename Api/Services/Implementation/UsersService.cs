@@ -6,6 +6,7 @@ using System.Text;
 using Services.Utils;
 using Microsoft.EntityFrameworkCore;
 using Services.Interface;
+using Newtonsoft.Json.Linq;
 
 namespace Services.Implementation
 {
@@ -82,12 +83,28 @@ namespace Services.Implementation
 
             if (extraClaims != null)
             {
-                existUser.ExtraClaims = extraClaims;
+                var newClaims = JObject.Parse(extraClaims);
+                var existClaims = JObject.Parse(existUser.ExtraClaims);
+
+                newClaims.Merge(existClaims, new JsonMergeSettings()
+                {
+                    MergeArrayHandling = MergeArrayHandling.Union
+                });
+
+                existUser.ExtraClaims = newClaims.ToString();
             }
 
             if (metadata != null)
             {
-                existUser.Metadata = metadata;
+                var newMetadata = JObject.Parse(metadata);
+                var existMetadata = JObject.Parse(existUser.Metadata);
+
+                newMetadata.Merge(existMetadata, new JsonMergeSettings()
+                {
+                    MergeArrayHandling = MergeArrayHandling.Union
+                });
+
+                existUser.Metadata = newMetadata.ToString();
             }
 
             dBContext.Update(existUser);

@@ -43,7 +43,7 @@ namespace ManagementApi.Controllers
             return Ok(new TenantCustomLogin()
             {
                 AllowPublicUsers = tenant.AllowPublicUsers.Value,
-                LoginText = "// TODO"
+                LoginText = tenant.Name
             });
         }
     }

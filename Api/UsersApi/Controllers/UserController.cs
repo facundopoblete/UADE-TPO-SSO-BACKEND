@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using DataAccess;
 using Microsoft.AspNetCore.Authorization;
@@ -84,8 +85,8 @@ namespace UsersApi.Controllers
         [Authorize]
         public IActionResult UserInfo()
         {
-            var audience = HttpContext.User.Claims.Where(c => c.Type == "aud").FirstOrDefault();
-            var userId = HttpContext.User.Claims.Where(c => c.Type == "userId").FirstOrDefault();
+            var audience = HttpContext.User.Claims.Where(c => c.Type == JwtRegisteredClaimNames.Aud).FirstOrDefault();
+            var userId = HttpContext.User.Claims.Where(c => c.Type == JwtRegisteredClaimNames.Sub).FirstOrDefault();
 
             if (audience == null || userId == null)
             {

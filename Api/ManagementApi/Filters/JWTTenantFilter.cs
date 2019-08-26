@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using System.Linq;
 using Services.Interface;
 using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ManagementApi.Filters
 {
@@ -14,7 +15,7 @@ namespace ManagementApi.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == "userId");
+            var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub);
 
             if (userId == null)
             {
