@@ -5,6 +5,7 @@ using System.Linq;
 using Services.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ManagementApi.Filters
 {
@@ -15,7 +16,7 @@ namespace ManagementApi.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
-            var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Sub);
+            var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
 
             if (userId == null)
             {

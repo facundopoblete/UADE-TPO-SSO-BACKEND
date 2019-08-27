@@ -62,7 +62,7 @@ namespace UsersApi
                         // Custom signing key validator
 
                         var jwt = new JwtSecurityToken(token);
-                        var audience = jwt.Claims.FirstOrDefault(x => x.Type == "aud");
+                        var audience = jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud);
 
                         if (audience == null)
                         {
