@@ -22,7 +22,7 @@ namespace ManagementApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult Get()
+        public IActionResult GetAllUsers()
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
@@ -37,7 +37,7 @@ namespace ManagementApi.Controllers
         }
 
         [HttpGet("{userId}")]
-        public IActionResult Get(Guid userId)
+        public IActionResult GetUser(Guid userId)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
@@ -64,7 +64,7 @@ namespace ManagementApi.Controllers
         }
 
         [HttpPost]
-        public IActionResult Post([FromBody]NewUserDTO user)
+        public IActionResult CreateUser([FromBody]NewUserDTO user)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
@@ -77,11 +77,16 @@ namespace ManagementApi.Controllers
 
             var newUser = usersService.CreateUser(tenant.Id, user.FullName, user.Email, user.Password);
 
-            return Ok(newUser);
+            return Ok(new UserDTO
+            {
+                Email = newUser.Email,
+                FullName = newUser.FullName,
+                Id = newUser.Id
+            });
         }
 
         [HttpPut("{userId}")]
-        public IActionResult Put(Guid userId, [FromBody]UpdateUserDTO newUserData)
+        public IActionResult UpdateUser(Guid userId, [FromBody]UpdateUserDTO newUserData)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
@@ -98,7 +103,7 @@ namespace ManagementApi.Controllers
         }
 
         [HttpDelete("{userId}")]
-        public IActionResult Delete(Guid userId)
+        public IActionResult DeleteUser(Guid userId)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 

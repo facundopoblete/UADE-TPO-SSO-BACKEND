@@ -16,12 +16,22 @@ namespace Services.Implementation
 
         public User GetUser(Guid tenantId, string email)
         {
-            return dBContext.User.FirstOrDefault(x => x.TenantId == tenantId && x.Email == email);
+            var user = dBContext.User.FirstOrDefault(x => x.TenantId == tenantId && x.Email == email);
+
+            dBContext.Entry(user).State = EntityState.Detached;
+            dBContext.SaveChanges();
+
+            return user;
         }
 
         public User GetUser(Guid tenantId, Guid userId)
         {
-            return dBContext.User.Include(x => x.UserEvent).FirstOrDefault(x => x.TenantId == tenantId && x.Id == userId);
+            var user = dBContext.User.Include(x => x.UserEvent).FirstOrDefault(x => x.TenantId == tenantId && x.Id == userId);
+
+            dBContext.Entry(user).State = EntityState.Detached;
+            dBContext.SaveChanges();
+
+            return user;
         }
 
         public List<User> GetUsers(Guid tenantId)
@@ -42,7 +52,7 @@ namespace Services.Implementation
                 PasswordSalt = Convert.ToBase64String(salt),
                 PasswordHash = Convert.ToBase64String(PasswordUtils.GenerateSaltedHash(Encoding.UTF8.GetBytes(password), salt))
             };
-
+           
             dBContext.Add(user);
             dBContext.SaveChanges();
 
@@ -53,6 +63,11 @@ namespace Services.Implementation
 
         public void DeleteUser(Guid tenantId, Guid userId)
         {
+            var events = dBContext.UserEvent.Where(x => x.Userid == userId && x.Tenantid == tenantId);
+
+            dBContext.RemoveRange(events);
+            dBContext.SaveChanges();
+
             var user = new User()
             {
                 TenantId = tenantId,
@@ -61,8 +76,6 @@ namespace Services.Implementation
 
             dBContext.Remove(user);
             dBContext.SaveChanges();
-
-            RegisterUserEvent(tenantId, userId, UserEvents.USER_DELETED);
         }
 
         public void UpdateUser(Guid tenantId, Guid userId, string fullName, string password, string extraClaims, string metadata)
