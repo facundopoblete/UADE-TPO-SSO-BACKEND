@@ -107,13 +107,6 @@ namespace ManagementApi.Controllers
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
-            var user = usersService.GetUser(tenant.Id, userId);
-
-            if (user == null)
-            {
-                return NotFound();
-            }
-
             usersService.DeleteUser(tenant.Id, userId);
 
             return Ok();

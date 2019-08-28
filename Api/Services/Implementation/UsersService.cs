@@ -18,18 +18,12 @@ namespace Services.Implementation
         {
             var user = dBContext.User.FirstOrDefault(x => x.TenantId == tenantId && x.Email == email);
 
-            dBContext.Entry(user).State = EntityState.Detached;
-            dBContext.SaveChanges();
-
             return user;
         }
 
         public User GetUser(Guid tenantId, Guid userId)
         {
             var user = dBContext.User.Include(x => x.UserEvent).FirstOrDefault(x => x.TenantId == tenantId && x.Id == userId);
-
-            dBContext.Entry(user).State = EntityState.Detached;
-            dBContext.SaveChanges();
 
             return user;
         }
