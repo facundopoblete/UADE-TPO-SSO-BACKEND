@@ -39,7 +39,8 @@ namespace ManagementApi.Controllers
                 ClientId = tenant.ClientId,
                 JwtDuration = tenant.JwtDuration,
                 JwtSigningKey = tenant.JwtSigningKey,
-                Name = tenant.Name
+                Name = tenant.Name,
+                Id = tenant.Id
             });
         }
 
