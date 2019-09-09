@@ -4,6 +4,9 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DocumentationFile>bin\Debug\netcoreapp2.2\ManagementApi.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />
     <Folder Include="Models\" />

@@ -24,6 +24,12 @@ namespace UsersApi.Controllers
             this.usersService = usersService;
         }
 
+        /// <summary>
+        /// Login de un usuario
+        /// </summary>
+        /// <param name="login"></param>
+        /// <returns>El JWT del usuario</returns>
+        /// <response code="401">Las credenciales no son validas.</response>
         [HttpPost("login")]
         [TenantFilter]
         public IActionResult Login([FromBody] LoginDTO login)
@@ -51,6 +57,13 @@ namespace UsersApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Registro de un nuevo usuario
+        /// </summary>
+        /// <param name="signup"></param>
+        /// <returns>El JWT del usuario</returns>
+        /// <response code="401">Las credenciales no son validas.</response>
+        /// <response code="403">El tenant no permite creación de usuarios.</response>
         [HttpPost("signup")]
         [TenantFilter]
         public IActionResult Signup([FromBody] SignupDTO signup)
@@ -82,6 +95,11 @@ namespace UsersApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Obtiene información del usuario
+        /// </summary>
+        /// <returns>Información del usuario</returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpGet("me")]
         [Authorize]
         public IActionResult UserInfo()

@@ -91,27 +91,43 @@ namespace Services.Implementation
             if (extraClaims != null)
             {
                 var newClaims = JObject.Parse(extraClaims);
-                var existClaims = JObject.Parse(existUser.ExtraClaims);
 
-                newClaims.Merge(existClaims, new JsonMergeSettings()
+                if (newClaims.Children().Count() == 0)
                 {
-                    MergeArrayHandling = MergeArrayHandling.Union
-                });
+                    existUser.ExtraClaims = newClaims.ToString();
+                }
+                else
+                {
+                    var existClaims = JObject.Parse(existUser.ExtraClaims ?? "{}");
 
-                existUser.ExtraClaims = newClaims.ToString();
+                    existClaims.Merge(newClaims, new JsonMergeSettings()
+                    {
+                        MergeArrayHandling = MergeArrayHandling.Union
+                    });
+
+                    existUser.ExtraClaims = existClaims.ToString();
+                }
             }
 
             if (metadata != null)
             {
                 var newMetadata = JObject.Parse(metadata);
-                var existMetadata = JObject.Parse(existUser.Metadata);
 
-                newMetadata.Merge(existMetadata, new JsonMergeSettings()
+                if (newMetadata.Children().Count() == 0)
                 {
-                    MergeArrayHandling = MergeArrayHandling.Union
-                });
+                    existUser.Metadata = newMetadata.ToString();
+                }
+                else
+                {
+                    var existMetadata = JObject.Parse(existUser.Metadata ?? "{}");
 
-                existUser.Metadata = newMetadata.ToString();
+                    existMetadata.Merge(newMetadata, new JsonMergeSettings()
+                    {
+                        MergeArrayHandling = MergeArrayHandling.Union
+                    });
+
+                    existUser.Metadata = existMetadata.ToString();
+                }
             }
 
             dBContext.Update(existUser);

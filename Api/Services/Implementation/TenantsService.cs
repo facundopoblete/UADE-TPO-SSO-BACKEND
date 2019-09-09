@@ -21,9 +21,9 @@ namespace Services.Implementation
             return dBContext.Tenant.FirstOrDefault(x => x.AdminId == userId);
         }
 
-        public Tenant GetTenant(string clientId, string clientSecret)
+        public Tenant GetTenant(string tenantId, string clientSecret)
         {
-            return dBContext.Tenant.FirstOrDefault(x => x.ClientId == clientId && x.ClientSecret == clientSecret);
+            return dBContext.Tenant.FirstOrDefault(x => x.Id == Guid.Parse(tenantId) && x.ClientSecret == clientSecret);
         }
 
         public List<Tenant> GetTenants()

@@ -24,7 +24,7 @@ namespace ManagementApi.Utils
                 Audience = tenant.Id.ToString(),
                 IssuedAt = DateTime.UtcNow,
                 NotBefore = DateTime.UtcNow,
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = DateTime.UtcNow.AddHours(1),
                 Subject = new ClaimsIdentity(new List<Claim> { new Claim(TENANT_ID_CLAIM, tenant.Id.ToString()) }),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(signingKey), SecurityAlgorithms.HmacSha256Signature)
             };

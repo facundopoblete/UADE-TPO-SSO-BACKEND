@@ -12,27 +12,32 @@ namespace ManagementApi.Filters
     public class JWTTenantFilter : ActionFilterAttribute
     {
         public const string TENANT_KEY = "TENANT";
-        public const string USER_KEY = "USER_ID";
+        public const string USER_KEY = "USER";
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            var audience = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud);
             var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
 
-            if (userId == null)
+            if (audience == null)
             {
                 context.Result = new StatusCodeResult(404);
                 base.OnActionExecuting(context);
             }
 
             Guid tenantId = Guid.Empty;
-            Guid.TryParse(userId.Value, out tenantId);
+            Guid.TryParse(audience.Value, out tenantId);
 
             ITenantService tenantsService = context.HttpContext.RequestServices.GetService<ITenantService>();
 
-            var tenant = tenantsService.GetTenantFromAdmin(tenantId);
+            var tenant = tenantsService.GetTenant(tenantId);
 
             context.RouteData.Values.Add(TENANT_KEY, tenant);
-            context.RouteData.Values.Add(USER_KEY, Guid.Parse(userId.Value));
+
+            if (userId != null)
+            {
+                context.RouteData.Values.Add(USER_KEY, Guid.Parse(userId.Value));
+            }
 
             base.OnActionExecuting(context);
         }

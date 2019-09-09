@@ -10,7 +10,7 @@ namespace Services.Interface
 
         Tenant GetTenantFromAdmin(Guid userId);
 
-        Tenant GetTenant(string clientId, string clientSecret);
+        Tenant GetTenant(string tenantId, string clientSecret);
 
         List<Tenant> GetTenants();
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Linq;
@@ -33,6 +34,9 @@ namespace UsersApi
             {
                 swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Users", Version = "v1" });
 
+                var filePath = Path.Combine(AppContext.BaseDirectory, "UsersApi.xml");
+                swaggerGen.IncludeXmlComments(filePath);
+
                 swaggerGen.OperationFilter<TenantHeaderOperationFilter>();
                 swaggerGen.OperationFilter<JWTOperationFilter>();
             });
@@ -57,10 +61,8 @@ namespace UsersApi
                     ValidateAudience = false,
                     ValidateIssuerSigningKey = false,
                     IssuerSigningKey = null,
-                    SignatureValidator = delegate (string token, TokenValidationParameters parameters)
+                    IssuerSigningKeyResolver = (string token, SecurityToken securityToken, string kid, TokenValidationParameters validationParameters) =>
                     {
-                        // Custom signing key validator
-
                         var jwt = new JwtSecurityToken(token);
                         var audience = jwt.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud);
 
@@ -77,26 +79,13 @@ namespace UsersApi
                             throw new Exception("Token signature validation failed.");
                         }
 
+                        List<SecurityKey> keys = new List<SecurityKey>();
+                        
                         var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(tenant.JwtSigningKey));
-
                         var signingCredentials = new SigningCredentials(new SymmetricSecurityKey(hmac.Key), SecurityAlgorithms.HmacSha256Signature);
+                        keys.Add(new SymmetricSecurityKey(hmac.Key));
 
-                        var signKey = signingCredentials.Key as SymmetricSecurityKey;
-
-                        var encodedData = jwt.EncodedHeader + "." + jwt.EncodedPayload;
-
-                        HMACSHA256 myhmacsha = new HMACSHA256(signKey.Key);
-                        byte[] byteArray = Encoding.UTF8.GetBytes(encodedData);
-                        MemoryStream stream = new MemoryStream(byteArray);
-                        byte[] hashValue = myhmacsha.ComputeHash(stream);
-                        var compiledSignature = Base64UrlEncoder.Encode(hashValue);
-
-                        if (compiledSignature != jwt.RawSignature)
-                        {
-                            throw new Exception("Token signature validation failed.");
-                        }
-
-                        return jwt;
+                        return keys;
                     }
                 };
             });

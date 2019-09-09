@@ -21,6 +21,11 @@ namespace ManagementApi.Controllers
             this.usersService = usersService;
         }
 
+        /// <summary>
+        /// Obtiene todos los usuarios del tenant.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpGet]
         public IActionResult GetAllUsers()
         {
@@ -36,6 +41,12 @@ namespace ManagementApi.Controllers
             }));
         }
 
+        /// <summary>
+        /// Obtiene la información de un usuario
+        /// </summary>
+        /// <param name="userId">Id del usuario</param>
+        /// <returns></returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpGet("{userId}")]
         public IActionResult GetUser(Guid userId)
         {
@@ -63,6 +74,12 @@ namespace ManagementApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Crea un nuevo usuario en el tenant.
+        /// </summary>
+        /// <param name="user">Información del nuevo usuario</param>
+        /// <returns>El nuevo usuario</returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpPost]
         public IActionResult CreateUser([FromBody]NewUserDTO user)
         {
@@ -85,6 +102,13 @@ namespace ManagementApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Modifica un usuario
+        /// </summary>
+        /// <param name="userId">Id del usuario</param>
+        /// <param name="newUserData">Información nueva del usuario</param>
+        /// <returns></returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpPut("{userId}")]
         public IActionResult UpdateUser(Guid userId, [FromBody]UpdateUserDTO newUserData)
         {
@@ -102,6 +126,12 @@ namespace ManagementApi.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Elimina un usuario del tenant
+        /// </summary>
+        /// <param name="userId">Id del usuario</param>
+        /// <returns></returns>
+        /// <response code="401">El JWT no es valido.</response>
         [HttpDelete("{userId}")]
         public IActionResult DeleteUser(Guid userId)
         {

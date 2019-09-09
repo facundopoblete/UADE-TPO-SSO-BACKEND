@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using ManagementApi.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,6 +28,9 @@ namespace ManagementApi
             services.AddSwaggerGen(swaggerGen =>
             {
                 swaggerGen.SwaggerDoc("v1", new Info { Title = "UADE SSO Management", Version = "v1" });
+
+                var filePath = Path.Combine(AppContext.BaseDirectory, "ManagementApi.xml");
+                swaggerGen.IncludeXmlComments(filePath);
 
                 swaggerGen.OperationFilter<TenantTokenOperationFilter>();
                 swaggerGen.OperationFilter<TenantHeaderOperationFilter>();
