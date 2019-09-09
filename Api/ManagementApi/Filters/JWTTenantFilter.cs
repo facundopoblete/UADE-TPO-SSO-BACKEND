@@ -32,7 +32,7 @@ namespace ManagementApi.Filters
 
             var tenant = tenantsService.GetTenant(tenantId);
 
-            context.RouteData.Values.Add(TENANT_KEY, tenant);
+            context.RouteData.Values.Add(TENANT_KEY, tenantId);
 
             if (userId != null)
             {
