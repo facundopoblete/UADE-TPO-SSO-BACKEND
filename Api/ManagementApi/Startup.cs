@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using DataAccess;
 using ManagementApi.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -60,6 +61,7 @@ namespace ManagementApi
                 };
             });
 
+            services.AddScoped<DBContext, DBContext>();
             services.AddScoped<ITenantService, TenantsService>();
             services.AddScoped<IUserService, UsersService>();
 

@@ -91,6 +91,7 @@ namespace UsersApi
                 };
             });
 
+            services.AddScoped<DBContext, DBContext>();
             services.AddScoped<ITenantService, TenantsService>();
             services.AddScoped<IUserService, UsersService>();
 
