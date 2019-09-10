@@ -9,8 +9,13 @@ namespace Services.Implementation
 {
     public class TenantsService : ITenantService
     {
-        DBContext dBContext = new DBContext();
+        private DBContext dBContext;
 
+        public TenantsService(DBContext dBContext)
+        {
+            this.dBContext = dBContext;
+        }
+        
         public Tenant GetTenant(Guid tenantId)
         {
             return dBContext.Tenant.FirstOrDefault(x => x.Id == tenantId);

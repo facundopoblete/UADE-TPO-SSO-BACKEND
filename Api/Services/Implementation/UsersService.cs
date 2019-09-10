@@ -12,7 +12,12 @@ namespace Services.Implementation
 {
     public class UsersService : IUserService
     {
-        DBContext dBContext = new DBContext();
+        private DBContext dBContext;
+
+        public UsersService(DBContext dBContext)
+        {
+            this.dBContext = dBContext;
+        }
 
         public User GetUser(Guid tenantId, string email)
         {
@@ -57,18 +62,13 @@ namespace Services.Implementation
 
         public void DeleteUser(Guid tenantId, Guid userId)
         {
-            var events = dBContext.UserEvent.Where(x => x.Userid == userId && x.Tenantid == tenantId);
+            var events = dBContext.UserEvent.Where(x => x.Userid == userId && x.Tenantid == tenantId).AsNoTracking();
 
-            dBContext.RemoveRange(events);
-            dBContext.SaveChanges();
+            dBContext.UserEvent.RemoveRange(events);
 
-            var user = new User()
-            {
-                TenantId = tenantId,
-                Id = userId
-            };
+            var user = dBContext.User.Where(x => x.Id == userId && x.TenantId == tenantId).FirstOrDefault();
 
-            dBContext.Remove(user);
+            dBContext.User.Remove(user);
             dBContext.SaveChanges();
         }
 
@@ -134,21 +134,6 @@ namespace Services.Implementation
             dBContext.SaveChanges();
 
             RegisterUserEvent(tenantId, userId, UserEvents.USER_UPDATED);
-        }
-
-        public void UpdateUserMetadata(Guid tenantId, Guid userId, dynamic metadata)
-        {
-            var user = new User()
-            {
-                TenantId = tenantId,
-                Id = userId,
-                Metadata = metadata
-            };
-
-            dBContext.Update(user);
-            dBContext.SaveChanges();
-
-            RegisterUserEvent(tenantId, userId, UserEvents.USER_METADATA_UPDATED);
         }
 
         public void RegisterUserEvent(Guid tenantId, Guid userId, string userEvent)

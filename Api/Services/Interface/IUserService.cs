@@ -18,8 +18,6 @@ namespace Services.Interface
 
         void UpdateUser(Guid tenantId, Guid userId, string fullName, string password, string extraClaims, string metadata);
 
-        void UpdateUserMetadata(Guid tenantId, Guid userId, dynamic metadata);
-
         void RegisterUserEvent(Guid tenantId, Guid userId, string userEvent);
     }
 }

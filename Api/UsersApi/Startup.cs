@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using DataAccess;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -71,7 +72,7 @@ namespace UsersApi
                             throw new Exception("Token signature validation failed.");
                         }
 
-                        TenantsService tenantsService = new TenantsService();
+                        TenantsService tenantsService = new TenantsService(new DBContext());
                         var tenant = tenantsService.GetTenant(Guid.Parse(audience.Value));
 
                         if (tenant == null)
