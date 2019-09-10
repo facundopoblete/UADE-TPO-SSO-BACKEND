@@ -29,9 +29,7 @@ namespace ManagementApi.Controllers
         [HttpGet]
         public IActionResult GetSettings()
         {
-            Guid tenantId = (Guid)RouteData.Values[JWTTenantFilter.TENANT_KEY];
-
-            var tenant = tenantsService.GetTenant(tenantId);
+            Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
 
             if (tenant == null)
             {
