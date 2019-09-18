@@ -19,24 +19,31 @@ namespace ManagementApi.Filters
             var audience = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == JwtRegisteredClaimNames.Aud);
             var userId = context.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
 
-            if (audience == null)
+            if (audience == null && userId == null)
             {
                 context.Result = new StatusCodeResult(404);
                 base.OnActionExecuting(context);
             }
 
-            Guid tenantId = Guid.Empty;
-            Guid.TryParse(audience.Value, out tenantId);
-
             ITenantService tenantsService = context.HttpContext.RequestServices.GetService<ITenantService>();
-
-            var tenant = tenantsService.GetTenant(tenantId);
-
-            context.RouteData.Values.Add(TENANT_KEY, tenant);
 
             if (userId != null)
             {
                 context.RouteData.Values.Add(USER_KEY, Guid.Parse(userId.Value));
+
+                var tenantByAdmin = tenantsService.GetTenantFromAdmin(Guid.Parse(userId.Value));
+
+                context.RouteData.Values.Add(TENANT_KEY, tenantByAdmin);
+            }
+            else
+            {
+                Guid tenantId = Guid.Empty;
+                Guid.TryParse(audience.Value, out tenantId);
+
+                var tenant = tenantsService.GetTenant(tenantId);
+
+                context.RouteData.Values.Add(USER_KEY, null);
+                context.RouteData.Values.Add(TENANT_KEY, tenant);
             }
 
             base.OnActionExecuting(context);
