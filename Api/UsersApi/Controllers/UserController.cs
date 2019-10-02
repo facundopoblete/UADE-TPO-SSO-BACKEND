@@ -115,11 +115,11 @@ namespace UsersApi.Controllers
         /// <returns>Ok</returns>
         [HttpPost("password/forgot")]
         [TenantFilter]
-        public IActionResult ForgotPassword([FromQuery] string userEmail)
+        public IActionResult ForgotPassword([FromBody] ForgotPasswordRequestDTO userEmail)
         {
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
-            usersService.UserForgotPassword(tenant.Id, userEmail);
+            usersService.UserForgotPassword(tenant.Id, userEmail.Email);
 
             return Ok();
         }
