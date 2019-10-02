@@ -113,7 +113,7 @@ namespace UsersApi.Controllers
         /// </summary>
         /// <param name="userEmail">Email del usuario</param>
         /// <returns>Ok</returns>
-        [HttpPost("signup")]
+        [HttpPost("password/forgot")]
         [TenantFilter]
         public IActionResult ForgotPassword([FromQuery] string userEmail)
         {
