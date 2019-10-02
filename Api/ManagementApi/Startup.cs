@@ -64,6 +64,7 @@ namespace ManagementApi
             services.AddScoped<DBContext, DBContext>();
             services.AddScoped<ITenantService, TenantsService>();
             services.AddScoped<IUserService, UsersService>();
+            services.AddScoped<IEmailSenderService, EmailSenderService>();
 
             services.AddMvc();
         }
