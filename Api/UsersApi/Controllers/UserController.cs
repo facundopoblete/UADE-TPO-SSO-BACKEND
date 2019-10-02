@@ -129,6 +129,7 @@ namespace UsersApi.Controllers
         /// </summary>
         /// <returns>Información del usuario</returns>
         /// <response code="401">El JWT no es valido.</response>
+        /// /// <response code="403">Password actual invalido.</response>
         [HttpGet("me/password")]
         [Authorize]
         public IActionResult UserChangePassword([FromBody] ChangePasswordDTO changePassword)
@@ -143,6 +144,18 @@ namespace UsersApi.Controllers
 
             var tenantId = Guid.Parse(audienceClaim.Value);
             var userId = Guid.Parse(userClaim.Value);
+
+            var user = usersService.GetUser(tenantId, userId);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+            if (PasswordUtils.IsValidPassword(user, changePassword.CurrentPassword))
+            {
+                return Conflict();
+            }
 
             try
             {

@@ -40,7 +40,7 @@ namespace Tests.Controllers.UsersAPI
         private static Tenant TENANT2 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = false };
         private static Tenant TENANT3 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = true };
 
-        private static User USER_TENANT1 = new User() { Id = USER1_ID_TENANT1, TenantId = TENANT1.Id };
+        private static User USER_TENANT1 = new User() { Id = USER1_ID_TENANT1, TenantId = TENANT1.Id, PasswordHash = "MDA3QzYzRTMxMTBDMzdCNUQzRTRDMjcxNzFBQTlFM0VCOUYwMzZFODYwRkQ4NkY4MzFFMzAxRDY2M0VBQjEzRQ==", PasswordSalt = "YXNk" };
 
         private DBContext dBContext;
         private UserController controller;
@@ -311,7 +311,10 @@ namespace Tests.Controllers.UsersAPI
 
             var userBeforeChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
 
-            var result = controller.ForgotPassword(USER1_EMAIL_TENANT1);
+            var result = controller.ForgotPassword(new ForgotPasswordRequestDTO()
+            {
+                Email = USER1_EMAIL_TENANT1
+            });
 
             var userAfterChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
 
@@ -329,7 +332,10 @@ namespace Tests.Controllers.UsersAPI
             ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
             controller.ControllerContext = controllerContext;
 
-            var result = controller.ForgotPassword("invalid@user.com");
+            var result = controller.ForgotPassword(new ForgotPasswordRequestDTO()
+            {
+                Email = "invalid@user.com"
+            });
 
             Assert.Equal(true, result is StatusCodeResult);
             Assert.Equal(200, (result as StatusCodeResult).StatusCode);
@@ -353,7 +359,38 @@ namespace Tests.Controllers.UsersAPI
 
             var result = controller.UserChangePassword(new ChangePasswordDTO()
             {
-                Password = "asd"
+                CurrentPassword = USER1_PASSWORD_TENANT1,
+                Password = "new-password"
+            });
+
+            var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
+
+            Assert.Equal(true, result is StatusCodeResult);
+            Assert.Equal(200, (result as StatusCodeResult).StatusCode);
+            Assert.NotEqual(userAfter.PasswordHash, userBefore.PasswordHash);
+            Assert.NotEqual(userAfter.PasswordSalt, userBefore.PasswordSalt);
+        }
+
+        [Fact]
+        public void ChangePasswordOnValidUserIdButInvalidCurrentPassword()
+        {
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(JwtRegisteredClaimNames.Aud, TENANT1.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, USER_TENANT1.Id.ToString()),
+            }, "Bearer"));
+
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() { User = user } };
+            controller.ControllerContext = controllerContext;
+
+            var userBefore = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
+
+            var result = controller.UserChangePassword(new ChangePasswordDTO()
+            {
+                CurrentPassword = "invalid-password",
+                Password = "new-password"
             });
 
             var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
@@ -382,13 +419,14 @@ namespace Tests.Controllers.UsersAPI
 
             var result = controller.UserChangePassword(new ChangePasswordDTO()
             {
-                Password = ""
+                CurrentPassword = "invalid-password",
+                Password = "new-password"
             });
 
             var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
 
             Assert.Equal(true, result is StatusCodeResult);
-            Assert.Equal(404, (result as StatusCodeResult).StatusCode);
+            Assert.Equal(401, (result as StatusCodeResult).StatusCode);
             Assert.Equal(userAfter.PasswordHash, userBefore.PasswordHash);
             Assert.Equal(userAfter.PasswordSalt, userBefore.PasswordSalt);
         }
