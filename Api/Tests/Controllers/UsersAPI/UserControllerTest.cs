@@ -11,11 +11,22 @@ using UsersApi.Controllers;
 using UsersApi.Filters;
 using UsersApi.Models;
 using Xunit;
+using System.Linq;
+using Services.Interface;
+using System.Net.Mail;
 
 namespace Tests.Controllers.UsersAPI
 {
     public class UserControllerTest : IDisposable
     {
+        private class MockEmailSenderService : IEmailSenderService
+        {
+            public void sendEmail(MailAddress toAddress, string subject, string body)
+            {
+                Console.WriteLine(String.Format("Email Sent: {0} {1} {2}", toAddress.Address, subject, body));
+            }
+        }
+
         protected static Guid USER1_ID_TENANT1 = Guid.NewGuid();
         private static String USER1_EMAIL_TENANT1 = "test@test.com";
         private static String USER1_PASSWORD_TENANT1 = "password123";
@@ -29,7 +40,7 @@ namespace Tests.Controllers.UsersAPI
         private static Tenant TENANT2 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = false };
         private static Tenant TENANT3 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = true };
 
-        private static User USER_TENANT1 = new User() { Id = Guid.NewGuid(), TenantId = TENANT1.Id };
+        private static User USER_TENANT1 = new User() { Id = USER1_ID_TENANT1, TenantId = TENANT1.Id };
 
         private DBContext dBContext;
         private UserController controller;
@@ -39,7 +50,7 @@ namespace Tests.Controllers.UsersAPI
             var options = new DbContextOptionsBuilder<DBContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
 
             this.dBContext = new DBContext(options);
-            var service = new UsersService(dBContext);
+            var service = new UsersService(dBContext, new MockEmailSenderService());
 
             this.controller = new UserController(service);
 
@@ -102,12 +113,12 @@ namespace Tests.Controllers.UsersAPI
         [Fact]
         public void LoginWithInvalidTenant()
         {
-            /*RouteData routeData = new RouteData();
+            RouteData routeData = new RouteData();
             routeData.Values.Add(TenantFilter.TENANT_KEY, null);
             ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
             controller.ControllerContext = controllerContext;
 
-            var result = controller.Login(new UsersApi.Models.LoginDTO()
+            var result = controller.Login(new LoginDTO()
             {
                 Email = USER1_EMAIL_TENANT1,
                 Password = USER1_PASSWORD_TENANT1
@@ -115,7 +126,7 @@ namespace Tests.Controllers.UsersAPI
 
             var statusResult = result as StatusCodeResult;
 
-            Assert.Equal(500, statusResult.StatusCode);*/
+            Assert.Equal(401, statusResult.StatusCode);
         }
 
         [Fact]
@@ -196,6 +207,26 @@ namespace Tests.Controllers.UsersAPI
         }
 
         [Fact]
+        public void CreateUserWithInvalidEmailFormat()
+        {
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
+            controller.ControllerContext = controllerContext;
+
+            var result = controller.Signup(new SignupDTO()
+            {
+                Email = "invalid_email",
+                FullName = "name",
+                Password = "pass"
+            });
+
+            var statusResult = result as ConflictObjectResult;
+
+            Assert.Equal("Invalid email format", statusResult.Value);
+        }
+
+        [Fact]
         public void CreateUserInPrivateTenant()
         {
             RouteData routeData = new RouteData();
@@ -259,8 +290,58 @@ namespace Tests.Controllers.UsersAPI
         [Fact]
         public void GetMeInfoNullUser()
         {
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
+            controller.ControllerContext = controllerContext;
+
+            var result = controller.UserInfo();
+
+            Assert.Equal(true, result is StatusCodeResult);
+            Assert.Equal(401, (result as StatusCodeResult).StatusCode);
+        }
+
+        [Fact]
+        public void ForgotPasswordOnValidUserEmail()
+        {
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
+            controller.ControllerContext = controllerContext;
+
+            var userBeforeChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
+
+            var result = controller.ForgotPassword(USER1_EMAIL_TENANT1);
+
+            var userAfterChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
+
+            Assert.Equal(true, result is StatusCodeResult);
+            Assert.Equal(200, (result as StatusCodeResult).StatusCode);
+            Assert.NotEqual(userBeforeChange.PasswordHash, userAfterChange.PasswordHash);
+            Assert.NotEqual(userBeforeChange.PasswordSalt, userAfterChange.PasswordSalt);
+        }
+
+        [Fact]
+        public void ForgotPasswordOnInvalidUserEmail()
+        {
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
+            controller.ControllerContext = controllerContext;
+
+            var result = controller.ForgotPassword("invalid@user.com");
+
+            Assert.Equal(true, result is StatusCodeResult);
+            Assert.Equal(200, (result as StatusCodeResult).StatusCode);
+        }
+
+        [Fact]
+        public void ChangePasswordOnValidUserId()
+        {
             var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
             {
+                new Claim(JwtRegisteredClaimNames.Aud, TENANT1.Id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, USER_TENANT1.Id.ToString()),
             }, "Bearer"));
 
             RouteData routeData = new RouteData();
@@ -268,10 +349,48 @@ namespace Tests.Controllers.UsersAPI
             ControllerContext controllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() { User = user } };
             controller.ControllerContext = controllerContext;
 
-            var result = controller.UserInfo();
+            var userBefore = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
+
+            var result = controller.UserChangePassword(new ChangePasswordDTO()
+            {
+                Password = "asd"
+            });
+
+            var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
 
             Assert.Equal(true, result is StatusCodeResult);
-            Assert.Equal(401, (result as StatusCodeResult).StatusCode);
+            Assert.Equal(200, (result as StatusCodeResult).StatusCode);
+            Assert.NotEqual(userAfter.PasswordHash, userBefore.PasswordHash);
+            Assert.NotEqual(userAfter.PasswordSalt, userBefore.PasswordSalt);
+        }
+
+        [Fact]
+        public void ChangePasswordOnInvalidUserId()
+        {
+            var user = new ClaimsPrincipal(new ClaimsIdentity(new Claim[]
+            {
+                new Claim(JwtRegisteredClaimNames.Aud, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()),
+            }, "Bearer"));
+
+            RouteData routeData = new RouteData();
+            routeData.Values.Add(TenantFilter.TENANT_KEY, TENANT1);
+            ControllerContext controllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() { User = user } };
+            controller.ControllerContext = controllerContext;
+
+            var userBefore = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
+
+            var result = controller.UserChangePassword(new ChangePasswordDTO()
+            {
+                Password = ""
+            });
+
+            var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
+
+            Assert.Equal(true, result is StatusCodeResult);
+            Assert.Equal(404, (result as StatusCodeResult).StatusCode);
+            Assert.Equal(userAfter.PasswordHash, userBefore.PasswordHash);
+            Assert.Equal(userAfter.PasswordSalt, userBefore.PasswordSalt);
         }
     }
 }

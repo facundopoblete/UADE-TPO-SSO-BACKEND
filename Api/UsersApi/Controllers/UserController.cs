@@ -34,6 +34,11 @@ namespace UsersApi.Controllers
         [TenantFilter]
         public IActionResult Login([FromBody] LoginDTO login)
         {
+            if (RouteData.Values[TenantFilter.TENANT_KEY] == null)
+            {
+                return Unauthorized();
+            }
+
             Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
 
             var user = usersService.GetUser(tenant.Id, login.Email);
@@ -82,8 +87,16 @@ namespace UsersApi.Controllers
                 return Conflict();
             }
 
-            var user = usersService.CreateUser(tenant.Id, signup.FullName, signup.Email, signup.Password);
-
+            User user;
+            try
+            {
+                user = usersService.CreateUser(tenant.Id, signup.FullName, signup.Email, signup.Password);
+            }
+            catch (FormatException)
+            {
+                return Conflict("Invalid email format");
+            }
+            
             if (user == null)
             {
                 return Unauthorized();
@@ -96,6 +109,54 @@ namespace UsersApi.Controllers
         }
 
         /// <summary>
+        /// Reseteo de password para un usuario
+        /// </summary>
+        /// <param name="userEmail">Email del usuario</param>
+        /// <returns>Ok</returns>
+        [HttpPost("signup")]
+        [TenantFilter]
+        public IActionResult ForgotPassword([FromQuery] string userEmail)
+        {
+            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+
+            usersService.UserForgotPassword(tenant.Id, userEmail);
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Cambia el password del usuario
+        /// </summary>
+        /// <returns>Información del usuario</returns>
+        /// <response code="401">El JWT no es valido.</response>
+        [HttpGet("me/password")]
+        [Authorize]
+        public IActionResult UserChangePassword([FromBody] ChangePasswordDTO changePassword)
+        {
+            var audienceClaim = HttpContext.User.Claims.Where(c => c.Type == JwtRegisteredClaimNames.Aud).FirstOrDefault();
+            var userClaim = HttpContext.User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
+
+            if (audienceClaim == null || userClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var tenantId = Guid.Parse(audienceClaim.Value);
+            var userId = Guid.Parse(userClaim.Value);
+
+            try
+            {
+                usersService.ChangeUserPassword(tenantId, userId, changePassword.Password);
+            }
+            catch (Exception e)
+            {
+                return NotFound();
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Obtiene información del usuario
         /// </summary>
         /// <returns>Información del usuario</returns>
@@ -104,6 +165,11 @@ namespace UsersApi.Controllers
         [Authorize]
         public IActionResult UserInfo()
         {
+            if (HttpContext == null)
+            {
+                return Unauthorized();
+            }
+
             var audience = HttpContext.User.Claims.Where(c => c.Type == JwtRegisteredClaimNames.Aud).FirstOrDefault();
             var userId = HttpContext.User.Claims.Where(c => c.Type == ClaimTypes.NameIdentifier).FirstOrDefault();
 

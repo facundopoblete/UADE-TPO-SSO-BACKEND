@@ -1,10 +1,6 @@
 ﻿using System;
 using DataAccess;
 using ManagementApi.Controllers;
-using ManagementApi.Filters;
-using ManagementApi.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Services.Implementation;
 using Xunit;
@@ -21,7 +17,7 @@ namespace Tests.Controllers.ManagementAPI
             var options = new DbContextOptionsBuilder<DBContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
 
             this.dBContext = new DBContext(options);
-            var service = new UsersService(dBContext);
+            var service = new UsersService(dBContext, null);
 
             this.controller = new UsersController(service);
 

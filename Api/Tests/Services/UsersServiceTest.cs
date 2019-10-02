@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Services.Implementation;
 using Xunit;
 using System.Linq;
+using System.Net.Mail;
+using Services.Interface;
 
 namespace Tests.Services
 {
@@ -15,13 +17,21 @@ namespace Tests.Services
         private static Guid USER1_ID_TENANT1 = Guid.NewGuid();
         private static String USER1_EMAIL_TENANT1 = "test@test.com";
         private static Guid TENANT1 = Guid.NewGuid();
-        
+
+        private class MockEmailSenderService : IEmailSenderService
+        {
+            public void sendEmail(MailAddress toAddress, string subject, string body)
+            {
+                Console.WriteLine(String.Format("Email Sent: {0} {1} {2}", toAddress.Address, subject, body));
+            }
+        }
+
         public UsersServiceTest()
         {
             var options = new DbContextOptionsBuilder<DBContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
 
             this.dBContext = new DBContext(options);
-            this.service = new UsersService(this.dBContext);
+            this.service = new UsersService(this.dBContext, new MockEmailSenderService());
 
             var tenant1 = new Tenant() { Id = TENANT1 };
             var user1Tenant1 = new User() { Id = USER1_ID_TENANT1, TenantId = tenant1.Id, Email = USER1_EMAIL_TENANT1 };

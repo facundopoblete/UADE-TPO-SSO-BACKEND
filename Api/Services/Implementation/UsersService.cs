@@ -7,16 +7,19 @@ using Services.Utils;
 using Microsoft.EntityFrameworkCore;
 using Services.Interface;
 using Newtonsoft.Json.Linq;
+using System.Net.Mail;
 
 namespace Services.Implementation
 {
     public class UsersService : IUserService
     {
         private DBContext dBContext;
+        private IEmailSenderService emailSenderService;
 
-        public UsersService(DBContext dBContext)
+        public UsersService(DBContext dBContext, IEmailSenderService emailSenderService)
         {
             this.dBContext = dBContext;
+            this.emailSenderService = emailSenderService;
         }
 
         public User GetUser(Guid tenantId, string email)
@@ -40,6 +43,17 @@ namespace Services.Implementation
 
         public User CreateUser(Guid tenantId, string fullName, string email, string password)
         {
+            MailAddress emailAddress;
+
+            try
+            {
+                emailAddress = new MailAddress(email);
+            }
+            catch (FormatException e)
+            {
+                throw e;
+            }
+
             var salt = PasswordUtils.GenerateSalt();
 
             var user = new User()
@@ -47,7 +61,7 @@ namespace Services.Implementation
                 TenantId = tenantId,
                 Id = Guid.NewGuid(),
                 FullName = fullName,
-                Email = email,
+                Email = emailAddress.Address,
                 PasswordSalt = Convert.ToBase64String(salt),
                 PasswordHash = Convert.ToBase64String(PasswordUtils.GenerateSaltedHash(Encoding.UTF8.GetBytes(password), salt))
             };
@@ -148,6 +162,61 @@ namespace Services.Implementation
 
             dBContext.Add(newEvent);
             dBContext.SaveChanges();
+        }
+
+        public void UserForgotPassword(Guid tenantId, string userEmail)
+        {
+            var user = this.GetUser(tenantId, userEmail);
+
+            if (user == null)
+            {
+                return;
+            }
+
+            var newPassword = CreateRandomPassword();
+
+            this.ChangeUserPassword(tenantId, user.Id, newPassword);
+
+            var toAddress = new MailAddress(user.Email, user.FullName);
+            
+            const string subject = "Password Reset";
+            string body = String.Format("Tu nuevo password es: {0}", newPassword);
+
+            if (emailSenderService != null)
+            {
+                this.emailSenderService.sendEmail(toAddress, subject, body);
+            }
+        }
+
+        public void ChangeUserPassword(Guid tenantId, Guid userId, string newPassword)
+        {
+            var user = this.GetUser(tenantId, userId);
+
+            if (user == null)
+            {
+                throw new Exception();
+            }
+
+            var salt = PasswordUtils.GenerateSalt();
+            user.PasswordSalt = Convert.ToBase64String(salt);
+            user.PasswordHash = Convert.ToBase64String(PasswordUtils.GenerateSaltedHash(Encoding.UTF8.GetBytes(newPassword), salt));
+
+            dBContext.Update(user);
+            dBContext.SaveChanges();
+        }
+
+        private static string CreateRandomPassword(int length = 8)
+        {
+            string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-";
+            Random random = new Random();
+
+            char[] chars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                chars[i] = validChars[random.Next(0, validChars.Length)];
+            }
+
+            return new string(chars);
         }
     }
 }

@@ -19,5 +19,9 @@ namespace Services.Interface
         void UpdateUser(Guid tenantId, Guid userId, string fullName, string password, string extraClaims, string metadata);
 
         void RegisterUserEvent(Guid tenantId, Guid userId, string userEvent);
+
+        void UserForgotPassword(Guid tenantId, string userEmail);
+
+        void ChangeUserPassword(Guid tenantId, Guid userId, string newPassword);
     }
 }

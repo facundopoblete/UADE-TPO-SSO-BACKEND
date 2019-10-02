@@ -17,10 +17,9 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Api": {
+    "UsersApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
