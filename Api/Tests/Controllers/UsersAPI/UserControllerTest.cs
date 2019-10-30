@@ -14,6 +14,7 @@ using Xunit;
 using System.Linq;
 using Services.Interface;
 using System.Net.Mail;
+using Xunit.Abstractions;
 
 namespace Tests.Controllers.UsersAPI
 {
@@ -40,7 +41,7 @@ namespace Tests.Controllers.UsersAPI
         private static Tenant TENANT2 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = false };
         private static Tenant TENANT3 = new Tenant() { Id = Guid.NewGuid(), JwtDuration = 0, JwtSigningKey = "12345678901234567", ClientSecret = "abcdefghijklmnopqrst", AllowPublicUsers = true };
 
-        private static User USER_TENANT1 = new User() { Id = USER1_ID_TENANT1, TenantId = TENANT1.Id, PasswordHash = "MDA3QzYzRTMxMTBDMzdCNUQzRTRDMjcxNzFBQTlFM0VCOUYwMzZFODYwRkQ4NkY4MzFFMzAxRDY2M0VBQjEzRQ==", PasswordSalt = "YXNk" };
+        private static User USER_TENANT1 = new User() { Id = USER1_ID_TENANT1, Email = USER1_EMAIL_TENANT1, FullName = USER1_NAME_TENANT1, PasswordSalt = "1bGZlXc+9QU65fAz/zkrP1WrOOU=", PasswordHash = "rUaKizwzyVHPwCapVIGYTO7TnZ11hgCN2fh5SdZ94Xs=", TenantId = TENANT1.Id };
 
         private DBContext dBContext;
         private UserController controller;
@@ -58,16 +59,18 @@ namespace Tests.Controllers.UsersAPI
             dBContext.Add(TENANT2);
             dBContext.Add(TENANT3);
             dBContext.Add(USER_TENANT1);
-
             dBContext.SaveChanges();
-
-            service.CreateUser(TENANT1.Id, USER1_NAME_TENANT1, USER1_EMAIL_TENANT1, USER1_PASSWORD_TENANT1);
         }
 
         public void Dispose()
         {
-            this.dBContext.Database.EnsureDeleted();
-            this.dBContext.Dispose();
+            dBContext.ChangeTracker
+            .Entries()
+            .ToList()
+            .ForEach(e => e.State = EntityState.Detached);
+
+            
+            dBContext.Database.EnsureDeleted();
         }
 
         [Fact]
@@ -309,19 +312,33 @@ namespace Tests.Controllers.UsersAPI
             ControllerContext controllerContext = new ControllerContext { RouteData = routeData };
             controller.ControllerContext = controllerContext;
 
-            var userBeforeChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
-
+            var userBeforeChange = dBContext.User.Where(x => x.Email == USER1_EMAIL_TENANT1 && x.TenantId == TENANT1.Id).FirstOrDefault();
+            var p = userBeforeChange.PasswordHash;
+            var j = userBeforeChange.PasswordSalt;
             var result = controller.ForgotPassword(new ForgotPasswordRequestDTO()
             {
                 Email = USER1_EMAIL_TENANT1
             });
 
-            var userAfterChange = dBContext.User.AsNoTracking().Where(x => x.Email == USER1_EMAIL_TENANT1).FirstOrDefault();
+            var userAfterChange = dBContext.User.Where(x => x.Email == USER1_EMAIL_TENANT1 && x.TenantId == TENANT1.Id).FirstOrDefault();
 
             Assert.Equal(true, result is StatusCodeResult);
             Assert.Equal(200, (result as StatusCodeResult).StatusCode);
-            Assert.NotEqual(userBeforeChange.PasswordHash, userAfterChange.PasswordHash);
-            Assert.NotEqual(userBeforeChange.PasswordSalt, userAfterChange.PasswordSalt);
+            Assert.Equal(userBeforeChange.PasswordHash, userAfterChange.PasswordHash);
+            Assert.Equal(userBeforeChange.PasswordSalt, userAfterChange.PasswordSalt);
+
+            var recoveryEntries = this.dBContext.RecoverPassword.Where(x => x.TenantId == TENANT1.Id && x.UserId == USER1_ID_TENANT1).ToList();
+
+            Assert.Equal(1, recoveryEntries.Count);
+
+            var recoverResult = controller.ForgotPasswordChange(new RecoverPasswordDTO { Id = recoveryEntries.First().Id, Password = "nuevo_password" });
+
+            var userAfterRecover = dBContext.User.Where(x => x.Email == USER1_EMAIL_TENANT1 && x.TenantId == TENANT1.Id).FirstOrDefault();
+
+            Assert.Equal(true, recoverResult is StatusCodeResult);
+            Assert.Equal(200, (recoverResult as StatusCodeResult).StatusCode);
+            Assert.NotEqual(p, userAfterRecover.PasswordHash);
+            Assert.NotEqual(j, userAfterRecover.PasswordSalt);
         }
 
         [Fact]
@@ -396,9 +413,9 @@ namespace Tests.Controllers.UsersAPI
             var userAfter = dBContext.User.Where(x => x.Id == USER1_ID_TENANT1).AsNoTracking().FirstOrDefault();
 
             Assert.Equal(true, result is StatusCodeResult);
-            Assert.Equal(200, (result as StatusCodeResult).StatusCode);
-            Assert.NotEqual(userAfter.PasswordHash, userBefore.PasswordHash);
-            Assert.NotEqual(userAfter.PasswordSalt, userBefore.PasswordSalt);
+            Assert.Equal(409, (result as StatusCodeResult).StatusCode);
+            Assert.Equal(userAfter.PasswordHash, userBefore.PasswordHash);
+            Assert.Equal(userAfter.PasswordSalt, userBefore.PasswordSalt);
         }
 
         [Fact]

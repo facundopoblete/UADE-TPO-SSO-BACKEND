@@ -7,6 +7,7 @@ namespace DataAccess
     {
         public User()
         {
+            RecoverPassword = new HashSet<RecoverPassword>();
             UserEvent = new HashSet<UserEvent>();
         }
 
@@ -20,6 +21,7 @@ namespace DataAccess
         public string ExtraClaims { get; set; }
 
         public virtual Tenant Tenant { get; set; }
+        public virtual ICollection<RecoverPassword> RecoverPassword { get; set; }
         public virtual ICollection<UserEvent> UserEvent { get; set; }
     }
 }

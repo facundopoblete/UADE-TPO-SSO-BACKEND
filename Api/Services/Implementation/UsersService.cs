@@ -13,7 +13,7 @@ namespace Services.Implementation
 {
     public class UsersService : IUserService
     {
-        private DBContext dBContext;
+        public DBContext dBContext;
         private IEmailSenderService emailSenderService;
 
         public UsersService(DBContext dBContext, IEmailSenderService emailSenderService)
@@ -44,6 +44,13 @@ namespace Services.Implementation
         public User CreateUser(Guid tenantId, string fullName, string email, string password)
         {
             MailAddress emailAddress;
+
+            var existUser = this.GetUser(tenantId, email);
+
+            if (existUser != null)
+            {
+                throw new Exception("User already exists");
+            }
 
             try
             {
@@ -173,14 +180,20 @@ namespace Services.Implementation
                 return;
             }
 
-            var newPassword = CreateRandomPassword();
+            RecoverPassword recoverPasswordEntry = new RecoverPassword()
+            {
+                TenantId = tenantId,
+                UserId = user.Id,
+                IsValid = true
+            };
 
-            this.ChangeUserPassword(tenantId, user.Id, newPassword);
+            this.dBContext.Add(recoverPasswordEntry);
+            this.dBContext.SaveChanges();
 
             var toAddress = new MailAddress(user.Email, user.FullName);
             
             const string subject = "Password Reset";
-            string body = String.Format("Tu nuevo password es: {0}", newPassword);
+            string body = String.Format("https://uade-sso-login.herokuapp.com/recover?id={0}", recoverPasswordEntry.Id);
 
             if (emailSenderService != null)
             {
@@ -205,6 +218,21 @@ namespace Services.Implementation
             dBContext.SaveChanges();
         }
 
+
+        public bool ChangeUserPasswordFromRecover(Guid tenantId, Guid RecoverId, string newPassword)
+        {
+            var recoveryPassword = dBContext.RecoverPassword.FirstOrDefault(x => x.TenantId == tenantId && x.Id == RecoverId && x.IsValid == true);
+
+            if (recoveryPassword == null)
+            {
+                return false;
+            }
+
+            this.ChangeUserPassword(tenantId, recoveryPassword.UserId, newPassword);
+
+            return true;
+        }
+
         private static string CreateRandomPassword(int length = 8)
         {
             string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-";
@@ -218,5 +246,6 @@ namespace Services.Implementation
 
             return new string(chars);
         }
+
     }
 }

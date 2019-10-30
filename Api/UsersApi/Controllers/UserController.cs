@@ -125,6 +125,27 @@ namespace UsersApi.Controllers
         }
 
         /// <summary>
+        /// Reseteo de password para un usuario
+        /// </summary>
+        /// <param name="recoverPassword">Email del usuario</param>
+        /// <returns>Ok</returns>
+        [HttpPut("password/forgot")]
+        [TenantFilter]
+        public IActionResult ForgotPasswordChange([FromBody] RecoverPasswordDTO recoverPassword)
+        {
+            Tenant tenant = RouteData.Values[TenantFilter.TENANT_KEY] as Tenant;
+
+            var result = usersService.ChangeUserPasswordFromRecover(tenant.Id, recoverPassword.Id, recoverPassword.Password);
+
+            if (!result)
+            {
+                return Conflict();
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Cambia el password del usuario
         /// </summary>
         /// <returns>Información del usuario</returns>
@@ -152,7 +173,7 @@ namespace UsersApi.Controllers
                 return Unauthorized();
             }
 
-            if (PasswordUtils.IsValidPassword(user, changePassword.CurrentPassword))
+            if (!PasswordUtils.IsValidPassword(user, changePassword.CurrentPassword))
             {
                 return Conflict();
             }

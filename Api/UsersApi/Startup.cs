@@ -95,6 +95,7 @@ namespace UsersApi
             services.AddScoped<ITenantService, TenantsService>();
             services.AddScoped<IUserService, UsersService>();
             services.AddScoped<IEmailSenderService, EmailSenderService>();
+            services.AddScoped<IMachineService, MachineService>();
 
             services.AddMvc();
         }

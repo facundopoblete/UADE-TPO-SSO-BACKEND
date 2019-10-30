@@ -117,7 +117,7 @@ namespace Tests.Services
         public void CreateUser()
         {
             var newUserFullName = "new-user-test";
-            var newUserEmail = "test@test.com";
+            var newUserEmail = "test2@test.com";
             var newUserPassword = "test123";
 
             var user = service.CreateUser(TENANT1, newUserFullName, newUserEmail, newUserPassword);

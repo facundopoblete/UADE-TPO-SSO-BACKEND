@@ -7,6 +7,8 @@ namespace DataAccess
     {
         public Tenant()
         {
+            Machine = new HashSet<Machine>();
+            RecoverPassword = new HashSet<RecoverPassword>();
             User = new HashSet<User>();
         }
 
@@ -19,6 +21,8 @@ namespace DataAccess
         public string ClientSecret { get; set; }
         public bool? AllowPublicUsers { get; set; }
 
+        public virtual ICollection<Machine> Machine { get; set; }
+        public virtual ICollection<RecoverPassword> RecoverPassword { get; set; }
         public virtual ICollection<User> User { get; set; }
     }
 }

@@ -15,6 +15,8 @@ namespace DataAccess
         {
         }
 
+        public virtual DbSet<Machine> Machine { get; set; }
+        public virtual DbSet<RecoverPassword> RecoverPassword { get; set; }
         public virtual DbSet<Tenant> Tenant { get; set; }
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserEvent> UserEvent { get; set; }
@@ -32,6 +34,60 @@ namespace DataAccess
         {
             modelBuilder.HasPostgresExtension("uuid-ossp")
                 .HasAnnotation("ProductVersion", "2.2.6-servicing-10079");
+
+            modelBuilder.Entity<Machine>(entity =>
+            {
+                entity.ToTable("machine");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("uuid_generate_v4()");
+
+                entity.Property(e => e.Name)
+                    .HasColumnName("name")
+                    .HasMaxLength(1024);
+
+                entity.Property(e => e.Secret)
+                    .HasColumnName("secret")
+                    .HasMaxLength(1024);
+
+                entity.Property(e => e.TenantId).HasColumnName("tenant_id");
+
+                entity.HasOne(d => d.Tenant)
+                    .WithMany(p => p.Machine)
+                    .HasForeignKey(d => d.TenantId)
+                    .HasConstraintName("machine_tenant_id_fk");
+            });
+
+            modelBuilder.Entity<RecoverPassword>(entity =>
+            {
+                entity.ToTable("recover_password");
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("id")
+                    .HasDefaultValueSql("uuid_generate_v4()");
+
+                entity.Property(e => e.IsValid)
+                    .IsRequired()
+                    .HasColumnName("is_valid")
+                    .HasDefaultValueSql("true");
+
+                entity.Property(e => e.TenantId).HasColumnName("tenant_id");
+
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+
+                entity.HasOne(d => d.Tenant)
+                    .WithMany(p => p.RecoverPassword)
+                    .HasForeignKey(d => d.TenantId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("recover_password_tenant_id_fk");
+
+                entity.HasOne(d => d.User)
+                    .WithMany(p => p.RecoverPassword)
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("recover_password_user_id_fk");
+            });
 
             modelBuilder.Entity<Tenant>(entity =>
             {
@@ -86,6 +142,10 @@ namespace DataAccess
 
                 entity.HasIndex(e => e.Email)
                     .HasName("user_email_index");
+
+                entity.HasIndex(e => new { e.TenantId, e.Email })
+                    .HasName("user_tenant_id_email_uindex")
+                    .IsUnique();
 
                 entity.Property(e => e.Id)
                     .HasColumnName("id")

@@ -23,5 +23,7 @@ namespace Services.Interface
         void UserForgotPassword(Guid tenantId, string userEmail);
 
         void ChangeUserPassword(Guid tenantId, Guid userId, string newPassword);
+
+        bool ChangeUserPasswordFromRecover(Guid tenantId, Guid RecoverId, string newPassword);
     }
 }
