@@ -193,7 +193,7 @@ namespace Services.Implementation
             var toAddress = new MailAddress(user.Email, user.FullName);
             
             const string subject = "Password Reset";
-            string body = String.Format("https://uade-sso-login.herokuapp.com/recover?id={0}", recoverPasswordEntry.Id);
+            string body = String.Format("https://uade-sso-login.herokuapp.com/recover?id={0}&tenant={1}", recoverPasswordEntry.Id, tenantId.ToString());
 
             if (emailSenderService != null)
             {
@@ -229,6 +229,11 @@ namespace Services.Implementation
             }
 
             this.ChangeUserPassword(tenantId, recoveryPassword.UserId, newPassword);
+
+            recoveryPassword.IsValid = false;
+
+            dBContext.Update(recoveryPassword);
+            dBContext.SaveChanges();
 
             return true;
         }
