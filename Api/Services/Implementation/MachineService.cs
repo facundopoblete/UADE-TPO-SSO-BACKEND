@@ -33,7 +33,15 @@ namespace Services.Implementation
 
         public void DeleteMachine(Guid tenantId, Guid id)
         {
-            throw new NotImplementedException();
+            var machine = dBContext.Machine.Where(x => x.TenantId == tenantId && x.Id == id).FirstOrDefault();
+
+            if (machine == null)
+            {
+                return;
+            }
+
+            dBContext.Machine.Remove(machine);
+            dBContext.SaveChanges();
         }
 
         public List<Machine> GetAllMachines(Guid tenantId)
