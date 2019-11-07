@@ -151,7 +151,7 @@ namespace UsersApi.Controllers
         /// <returns>Información del usuario</returns>
         /// <response code="401">El JWT no es valido.</response>
         /// /// <response code="403">Password actual invalido.</response>
-        [HttpGet("me/password")]
+        [HttpPut("me/password")]
         [Authorize]
         public IActionResult UserChangePassword([FromBody] ChangePasswordDTO changePassword)
         {

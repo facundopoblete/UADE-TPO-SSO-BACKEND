@@ -22,7 +22,7 @@ namespace Services.Implementation
                 TenantId = tenantId,
                 Name = name,
                 Id = Guid.NewGuid(),
-                Secret = "asd"
+                Secret = createRandomValue(50)
             };
 
             dBContext.Machine.Add(newMachine);
@@ -44,6 +44,20 @@ namespace Services.Implementation
         public Machine GetMachine(Guid tenantId, Guid id)
         {
             return dBContext.Machine.FirstOrDefault(x => x.TenantId == tenantId && x.Id == id);
+        }
+
+        private static string createRandomValue(int length = 8)
+        {
+            string validChars = "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*?_-";
+            Random random = new Random();
+
+            char[] chars = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                chars[i] = validChars[random.Next(0, validChars.Length)];
+            }
+
+            return new string(chars);
         }
     }
 }
