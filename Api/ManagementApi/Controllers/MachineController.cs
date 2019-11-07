@@ -68,7 +68,7 @@ namespace ManagementApi.Controllers
         /// <param name="machineId">Id de la machine</param>
         /// <returns>Ok</returns>
         /// <response code="401">El JWT no es valido.</response>
-        [HttpDelete]
+        [HttpDelete("{machineId}")]
         public IActionResult DeleteMachine(Guid machineId)
         {
             Tenant tenant = RouteData.Values[JWTTenantFilter.TENANT_KEY] as Tenant;
